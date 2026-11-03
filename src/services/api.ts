@@ -11,12 +11,22 @@ export const API_HOST = API_BASE_URL.startsWith("http")
   ? API_BASE_URL.replace(/\/api\/?$/, "")
   : "";
 
+export const STORAGE_BASE_URL =
+  import.meta.env.VITE_STORAGE_URL ||
+  (import.meta.env.PROD
+    ? "https://storage.googleapis.com/punto_de_venta/prod"
+    : "https://storage.googleapis.com/punto_de_venta/dev");
+
 export const getFileUrl = (filePath?: string | null): string => {
   if (!filePath) return "";
   if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
     return filePath;
   }
-  return `${API_HOST}${filePath.startsWith("/") ? filePath : `/${filePath}`}`;
+  const cleanPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
+  if (STORAGE_BASE_URL) {
+    return `${STORAGE_BASE_URL.replace(/\/+$/, "")}${cleanPath}`;
+  }
+  return `${API_HOST}${cleanPath}`;
 };
 
 export const api = axios.create({
