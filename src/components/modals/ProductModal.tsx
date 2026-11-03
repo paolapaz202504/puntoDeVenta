@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { api } from "../../services/api";
+import { api, getFileUrl } from "../../services/api";
 import { toast } from "sonner";
 import {
   X,
@@ -439,7 +439,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 {imageUrl ? (
                   <>
                     <img
-                      src={imageUrl}
+                      src={getFileUrl(imageUrl)}
                       alt={name || "Foto del producto"}
                       className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
                     />
@@ -627,7 +627,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       <ProductImageModal
         isOpen={isZoomImageOpen}
         onClose={() => setIsZoomImageOpen(false)}
-        imageUrl={imageUrl}
+        imageUrl={getFileUrl(imageUrl)}
         productName={name || "Vista Previa de Fotografía"}
         categoryName={categories.find((c) => c.id === categoryId)?.name}
         brand={brands.find((b) => b.id === brandId)?.name || null}

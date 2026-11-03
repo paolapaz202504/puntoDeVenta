@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { api } from "../services/api";
+import { api, getFileUrl } from "../services/api";
 import { Product, Category, Brand } from "../types";
 import { ProductModal } from "../components/modals/ProductModal";
 import { ProductImageModal } from "../components/modals/ProductImageModal";
@@ -377,7 +377,7 @@ export const ProductsList: React.FC = () => {
                       {/* Imagen con fondo blanco (Clic para ampliar) */}
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         <ProductThumbnail
-                          src={p.image_url}
+                          src={getFileUrl(p.image_url)}
                           alt={p.name}
                           onClick={() => setViewingImageProduct(p)}
                         />
@@ -526,7 +526,7 @@ export const ProductsList: React.FC = () => {
       <ProductImageModal
         isOpen={!!viewingImageProduct}
         onClose={() => setViewingImageProduct(null)}
-        imageUrl={viewingImageProduct?.image_url}
+        imageUrl={getFileUrl(viewingImageProduct?.image_url)}
         productName={viewingImageProduct?.name || ""}
         categoryName={viewingImageProduct?.category?.name}
         brand={viewingImageProduct?.brand?.name || (typeof viewingImageProduct?.brand === "string" ? viewingImageProduct.brand : null)}

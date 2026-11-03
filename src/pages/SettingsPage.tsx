@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { api } from "../services/api";
+import { api, getFileUrl } from "../services/api";
 import { toast } from "sonner";
 import {
   Settings,
@@ -571,7 +571,7 @@ export const SettingsPage: React.FC = () => {
             <div className="w-40 h-40 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden mb-4 p-2 shadow-inner">
               {logoPreview ? (
                 <img
-                  src={logoPreview}
+                  src={getFileUrl(logoPreview)}
                   alt="Logotipo"
                   className="max-h-full max-w-full object-contain"
                 />
