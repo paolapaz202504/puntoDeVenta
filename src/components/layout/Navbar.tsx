@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { ChangelogModal } from "../modals/ChangelogModal";
+import { CURRENT_VERSION } from "../../data/changelog";
 import {
   UtensilsCrossed,
   ShieldCheck,
@@ -19,6 +21,7 @@ import {
   Tag,
   Building2,
   Ruler,
+  History,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -57,6 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
   const inventoryDropdownRef = useRef<HTMLDivElement>(null);
@@ -117,13 +121,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
               <UtensilsCrossed className="w-5 h-5" />
             </div>
-            <div>
+            <div className="flex items-center">
               <span className="text-xl font-black tracking-tight text-slate-900">
                 punto<span className="text-blue-600">V</span>
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                 POS Restaurante
               </span>
+
+              {/* Indicador discreto de versión (Clic para desplegar Changelog) */}
+              <button
+                type="button"
+                onClick={() => setIsChangelogOpen(true)}
+                title="Haga clic para ver el historial de cambios y novedades"
+                className="ml-2.5 inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 transition-all cursor-pointer shadow-2xs group"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform animate-pulse"></span>
+                <span>{CURRENT_VERSION}</span>
+              </button>
             </div>
 
             {/* Menú de Navegación Principal (Desktop) */}
@@ -677,8 +692,33 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
           </div>
+
+          {/* Botón Historial de Versiones (Móvil) */}
+          <div className="pt-2 border-t border-slate-200">
+            <button
+              onClick={() => {
+                setIsChangelogOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 shadow-2xs"
+            >
+              <span className="flex items-center">
+                <History className="w-4 h-4 mr-2 text-blue-600" />
+                Historial de Versiones ({CURRENT_VERSION})
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono">
+                Activa
+              </span>
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Modal Interactivo de Control de Cambios y Versiones */}
+      <ChangelogModal
+        isOpen={isChangelogOpen}
+        onClose={() => setIsChangelogOpen(false)}
+      />
     </header>
   );
 };
