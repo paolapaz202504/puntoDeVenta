@@ -146,7 +146,7 @@ export const PosSalesPage: React.FC = () => {
       const [prodRes, catRes, tablesRes] = await Promise.all([
         api.get("/sales/pos-products"),
         api.get("/categories?limit=100"),
-        api.get("/tables?limit=200"),
+        api.get("/tables?limit=100"),
       ]);
 
       const allCats: Category[] = catRes.data.items || catRes.data.data || [];
