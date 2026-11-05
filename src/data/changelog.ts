@@ -12,16 +12,46 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.7.2";
+export const CURRENT_VERSION = "v1.8.0";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.8.0",
+    date: "2026-11-05",
+    title: "Catálogo Fotográfico Oficial: Estandarización de 83 Packshots Reales de Productos (GCS Dev & Prod)",
+    summary:
+      "Renovación completa del catálogo visual de los 83 productos del sistema: descarga, curaduría fotográfica, eliminación de bordes blancos excesivos, normalización a fondo blanco puro (#FFFFFF) a 600x600 px y sincronización total en Google Cloud Storage y bases de datos TiDB Cloud en Desarrollo y Producción.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Curaduría y Estandarización de 83 Productos: Normalización fotográfica de Bebidas Embotelladas, Licuados, Refrescos Naturales, Panes, Tostadas, Sub-ensambles e Insumos en lienzo 600x600 px centrado y sin márgenes muertos.",
+      },
+      {
+        type: "cloud",
+        description:
+          "Sincronización Total en Google Cloud Storage: 83 imágenes PNG optimizadas subidas concurrentemente tanto en dev/files/products/ como en prod/files/products/ del bucket punto_de_venta.",
+      },
+      {
+        type: "feature",
+        description:
+          "Actualización de Base de Datos Dev y Prod: Mapeo y actualización por lotes de las rutas image_url para los 83 productos en refresqueriadbdev y refresqueriadbprod.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Impacto Visual en Punto de Venta (POS): Las tarjetas de productos aprovechan el 90% del espacio visual de la tarjeta sin bordes gigantes, permitiendo al cajero identificar rápidamente el producto por su fotografía real.",
+      },
+    ],
+  },
   {
     version: "v1.7.2",
     date: "2026-11-05",
     title: "Optimización de Espacio en Comanda POS: Mesas y Título de Área en Fila Única",
     summary:
       "Aprovechamiento ergonómico del espacio en el panel de comanda: el título distintivo de cada Área y sus respectivas mesas o espacios de trabajo se integran en una sola fila continua con tipografía compacta, eliminando filas redundantes y maximizando el área visible para los productos del carrito.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "improvement",
