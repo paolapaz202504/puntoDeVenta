@@ -12,16 +12,46 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.8.0";
+export const CURRENT_VERSION = "v1.8.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.8.1",
+    date: "2026-11-05",
+    title: "Optimización de Transacciones ACID en POS y Protección Integral de APIs",
+    summary:
+      "Resolución integral del tiempo de espera (timeout) en el registro de comandas POS: desacoplamiento de lecturas antes de la transacción, descuento de stock optimizado y ampliación del tiempo de espera interactivo de Prisma a 30s. Validación de control de calidad QA con 8 pruebas automatizadas exitosas.",
+    isLatest: true,
+    changes: [
+      {
+        type: "fix",
+        description:
+          "Eliminación de Timeout en Ventas: Optimización de SaleService.create para resolver el error de transacción cerrada por timeout, reduciendo el tiempo de guardado a ~3.2 segundos sobre TiDB Cloud.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Blindaje Transaccional en Todo el Backend: Configuración de timeout: 30000 y maxWait: 15000 en todos los servicios con transacciones ACID (Ventas, Entradas/Compras, Producción, Recetas, Productos, Usuarios y Permisos).",
+      },
+      {
+        type: "security",
+        description:
+          "Verificación de Seguridad en Métricas del Dashboard: Validación del middleware de autenticación que bloquea accesos no autorizados sin token JWT (401) y permite la carga inmediata dentro de la sesión de usuario.",
+      },
+      {
+        type: "feature",
+        description:
+          "Suite Automatizada QA: Creación y ejecución de suite de pruebas end-to-end con 8/8 pruebas exitosas en login, dashboard, catálogo POS, mesas y ciclo completo de venta y anulación.",
+      },
+    ],
+  },
   {
     version: "v1.8.0",
     date: "2026-11-05",
     title: "Catálogo Fotográfico Oficial: Estandarización de 83 Packshots Reales de Productos (GCS Dev & Prod)",
     summary:
       "Renovación completa del catálogo visual de los 83 productos del sistema: descarga, curaduría fotográfica, eliminación de bordes blancos excesivos, normalización a fondo blanco puro (#FFFFFF) a 600x600 px y sincronización total en Google Cloud Storage y bases de datos TiDB Cloud en Desarrollo y Producción.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
