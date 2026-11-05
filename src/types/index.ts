@@ -144,6 +144,86 @@ export interface ProductPurchasePresentation {
   default_cost?: number | null;
 }
 
+export interface Supplier {
+  id: string;
+  name: string;
+  contact_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  category: "FRUTAS" | "PANADERIA" | "CARNICERIA" | "ABARROTES" | "GENERAL";
+  is_active: boolean;
+  products_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecipeItem {
+  id?: string;
+  recipe_id?: string;
+  ingredient_id: string;
+  quantity: number;
+  unit: string;
+  ingredient?: {
+    id: string;
+    code: string;
+    name: string;
+    current_stock: number;
+    current_cost: number;
+    base_unit?: {
+      symbol: string;
+      name: string;
+    };
+  };
+}
+
+export interface Recipe {
+  id: string;
+  product_id: string;
+  name: string;
+  recipe_type: "BATCH_SCALABLE" | "SUB_RECIPE_BATCH" | "ON_DEMAND_UNIT";
+  base_yield: number;
+  yield_unit: string;
+  instructions?: string | null;
+  is_active: boolean;
+  product?: {
+    id: string;
+    code: string;
+    name: string;
+    product_type: string;
+    current_stock: number;
+    base_unit?: {
+      symbol: string;
+    };
+  };
+  items?: RecipeItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductionBatch {
+  id: string;
+  recipe_id: string;
+  recipe_name: string;
+  product_id: string;
+  product_name: string;
+  container_capacity_liters?: number | null;
+  produced_quantity: number;
+  unit: string;
+  total_cost: number;
+  notes?: string | null;
+  created_at: string;
+  created_by?: string | null;
+  consumed_items?: Array<{
+    id: string;
+    ingredient_name: string;
+    quantity_consumed: number;
+    unit: string;
+    unit_cost_applied: number;
+    total_cost: number;
+  }>;
+}
+
 export interface Product {
   id: string;
   code: string;
@@ -151,7 +231,8 @@ export interface Product {
   brand_id?: string | null;
   category_id: string;
   base_unit_id: string;
-  product_type: "DIRECT_SALE" | "MANUFACTURED" | "RAW_MATERIAL";
+  supplier_id?: string | null;
+  product_type: "DIRECT_SALE" | "MANUFACTURED" | "RAW_MATERIAL" | "SUB_RECIPE" | "ON_DEMAND";
   sale_price: number;
   current_cost: number;
   current_stock: number;
@@ -166,11 +247,17 @@ export interface Product {
     id: string;
     name: string;
   } | null;
+  supplier?: {
+    id: string;
+    name: string;
+    category: string;
+  } | null;
   base_unit?: {
     id: string;
     name: string;
     symbol: string;
   };
+  recipes_as_final?: Recipe[];
   presentations?: ProductPurchasePresentation[];
   created_at: string;
   updated_at: string;

@@ -6,8 +6,7 @@ import {
   UtensilsCrossed,
   ShieldCheck,
   Users,
-  UserCircle,
-  LogOut,
+  User,
   ChevronDown,
   Shield,
   Settings,
@@ -22,6 +21,10 @@ import {
   Building2,
   Ruler,
   History,
+  Truck,
+  BookOpen,
+  PackagePlus,
+  ArrowDownLeft,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -34,7 +37,10 @@ interface NavbarProps {
     | "products"
     | "categories"
     | "brands"
-    | "units";
+    | "units"
+    | "suppliers"
+    | "recipes"
+    | "entries";
   onTabChange: (
     tab:
       | "users"
@@ -46,6 +52,9 @@ interface NavbarProps {
       | "categories"
       | "brands"
       | "units"
+      | "suppliers"
+      | "recipes"
+      | "entries"
   ) => void;
   onOpenProfile: () => void;
 }
@@ -55,15 +64,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   onOpenProfile,
 }) => {
-  const { user, logout, hasPermission } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
   const [isRestaurantOpen, setIsRestaurantOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+  const [isEntriesOpen, setIsEntriesOpen] = useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
   const inventoryDropdownRef = useRef<HTMLDivElement>(null);
+  const entriesDropdownRef = useRef<HTMLDivElement>(null);
   const securityDropdownRef = useRef<HTMLDivElement>(null);
 
   const canManageSettings =
@@ -86,6 +97,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         setIsInventoryOpen(false);
       }
       if (
+        entriesDropdownRef.current &&
+        !entriesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsEntriesOpen(false);
+      }
+      if (
         securityDropdownRef.current &&
         !securityDropdownRef.current.contains(event.target as Node)
       ) {
@@ -98,17 +115,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, []);
 
-  const roleDisplay =
-    user?.roles && user.roles.length > 0
-      ? user.roles.map((r) => r.name).join(" • ")
-      : "Usuario";
-
   const isRestaurantActive = currentTab === "areas" || currentTab === "tables";
   const isInventoryActive =
     currentTab === "products" ||
     currentTab === "categories" ||
     currentTab === "brands" ||
-    currentTab === "units";
+    currentTab === "units" ||
+    currentTab === "recipes";
+  const isEntriesActive =
+    currentTab === "entries" || currentTab === "suppliers";
   const isSecurityActive =
     currentTab === "users" || currentTab === "roles" || currentTab === "settings";
 
@@ -124,9 +139,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center">
               <span className="text-xl font-black tracking-tight text-slate-900">
                 punto<span className="text-blue-600">V</span>
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
-                POS Restaurante
               </span>
 
               {/* Indicador discreto de versión (Clic para desplegar Changelog) */}
@@ -150,6 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => {
                     setIsRestaurantOpen(!isRestaurantOpen);
                     setIsInventoryOpen(false);
+                    setIsEntriesOpen(false);
                     setIsSecurityOpen(false);
                   }}
                   className={`inline-flex items-center px-3.5 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
@@ -234,6 +247,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => {
                     setIsInventoryOpen(!isInventoryOpen);
                     setIsRestaurantOpen(false);
+                    setIsEntriesOpen(false);
                     setIsSecurityOpen(false);
                   }}
                   className={`inline-flex items-center px-3.5 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
@@ -354,7 +368,119 @@ export const Navbar: React.FC<NavbarProps> = ({
                             Unidades de Medida
                           </p>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            Unidades base de inventario (UND, VASO, ML)
+                            Unidades base de inventario (UND, VASO, ML, LB)
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Opción 5: Catálogo de Recetas y Fórmulas */}
+                      <button
+                        onClick={() => {
+                          onTabChange("recipes");
+                          setIsInventoryOpen(false);
+                        }}
+                        className={`w-full flex items-start p-3 rounded-xl transition-colors text-left cursor-pointer ${
+                          currentTab === "recipes"
+                            ? "bg-blue-50 text-blue-900 ring-1 ring-blue-200"
+                            : "hover:bg-slate-50 text-slate-800"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center mr-3 shrink-0 mt-0.5">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">
+                            Recetas y Fórmulas Base
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Refrescos en cubetas 1-10L, rellenos y ensamble
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* DROPDOWN DE ENTRADAS */}
+              <div className="relative" ref={entriesDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEntriesOpen(!isEntriesOpen);
+                    setIsRestaurantOpen(false);
+                    setIsInventoryOpen(false);
+                    setIsSecurityOpen(false);
+                  }}
+                  className={`inline-flex items-center px-3.5 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                    isEntriesActive
+                      ? "bg-slate-100 text-blue-700 ring-1 ring-slate-200"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                >
+                  <PackagePlus className="w-4 h-4 mr-2 text-blue-600" />
+                  <span>Entradas</span>
+                  <ChevronDown
+                    className={`w-4 h-4 ml-1.5 transition-transform duration-200 text-slate-500 ${
+                      isEntriesOpen ? "rotate-180 text-blue-600" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Menú Desplegable Entradas */}
+                {isEntriesOpen && (
+                  <div className="absolute left-0 mt-2 w-[28rem] rounded-2xl bg-white shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                      Módulo de Entradas y Compras
+                    </div>
+
+                    <div className="mt-1 space-y-1">
+                      {/* Opción 1: Entradas */}
+                      <button
+                        onClick={() => {
+                          onTabChange("entries");
+                          setIsEntriesOpen(false);
+                        }}
+                        className={`w-full flex items-start p-3 rounded-xl transition-colors text-left cursor-pointer ${
+                          currentTab === "entries"
+                            ? "bg-blue-50 text-blue-900 ring-1 ring-blue-200"
+                            : "hover:bg-slate-50 text-slate-800"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mr-3 shrink-0 mt-0.5">
+                          <ArrowDownLeft className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">
+                            Entradas
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Recepción de mercadería, compras a proveedores e insumos
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Opción 2: Catálogo de Proveedores */}
+                      <button
+                        onClick={() => {
+                          onTabChange("suppliers");
+                          setIsEntriesOpen(false);
+                        }}
+                        className={`w-full flex items-start p-3 rounded-xl transition-colors text-left cursor-pointer ${
+                          currentTab === "suppliers"
+                            ? "bg-blue-50 text-blue-900 ring-1 ring-blue-200"
+                            : "hover:bg-slate-50 text-slate-800"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mr-3 shrink-0 mt-0.5">
+                          <Truck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">
+                            Catálogo de Proveedores
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Frutas, carnes, panadería, lácteos y abarrotes
                           </p>
                         </div>
                       </button>
@@ -371,6 +497,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setIsSecurityOpen(!isSecurityOpen);
                     setIsRestaurantOpen(false);
                     setIsInventoryOpen(false);
+                    setIsEntriesOpen(false);
                   }}
                   className={`inline-flex items-center px-3.5 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                     isSecurityActive
@@ -480,38 +607,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           </div>
 
-          {/* Perfil de Usuario y Acciones Rápidas */}
+          {/* Perfil de Usuario (Icono de usuario seguido del nombre) */}
           <div className="flex items-center space-x-3">
-            <div className="hidden lg:flex flex-col text-right">
-              <span className="text-sm font-bold text-slate-900 truncate">
-                {user?.name}
-              </span>
-              <span
-                className="text-xs font-semibold text-slate-500 truncate"
-                title={roleDisplay}
-              >
-                {roleDisplay} (@{user?.user})
-              </span>
-            </div>
-
-            {/* Botón Mi Perfil */}
             <button
+              type="button"
               onClick={onOpenProfile}
-              title="Ver Mi Perfil"
-              className="inline-flex items-center px-3 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-800 bg-white hover:bg-slate-50 transition-colors shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              title={`Mi Perfil: ${user?.name || "Usuario"} (@${user?.user || ""})`}
+              className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 transition-all cursor-pointer shadow-2xs group focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <UserCircle className="w-4 h-4 sm:mr-1.5 text-slate-600" />
-              <span className="hidden sm:inline">Mi Perfil</span>
-            </button>
-
-            {/* Botón Cerrar Sesión */}
-            <button
-              onClick={logout}
-              title="Cerrar Sesión"
-              className="inline-flex items-center px-3 py-2 border border-rose-200 rounded-xl text-sm font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors shadow-xs focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline">Cerrar Sesión</span>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center group-hover:bg-blue-100 transition-colors shrink-0">
+                <User className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="text-sm font-bold text-slate-900 truncate max-w-[140px] sm:max-w-[200px]">
+                {user?.name || "Usuario"}
+              </span>
             </button>
 
             {/* Botón Menú Móvil */}
@@ -594,6 +703,58 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Ruler className="w-4 h-4 mr-2 text-indigo-600" />
                 Unidades de Medida
+              </button>
+              <button
+                onClick={() => {
+                  onTabChange("recipes");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-bold ${
+                  currentTab === "recipes"
+                    ? "bg-white text-blue-700 shadow-xs border border-slate-200"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <BookOpen className="w-4 h-4 mr-2 text-rose-600" />
+                Recetas y Fórmulas Base
+              </button>
+            </div>
+          </div>
+
+          {/* Sección Entradas */}
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center px-2 py-1">
+              <PackagePlus className="w-3.5 h-3.5 mr-1 text-blue-600" />
+              Módulo Entradas
+            </p>
+            <div className="space-y-1 mt-1">
+              <button
+                onClick={() => {
+                  onTabChange("entries");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-bold ${
+                  currentTab === "entries"
+                    ? "bg-white text-blue-700 shadow-xs border border-slate-200"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <ArrowDownLeft className="w-4 h-4 mr-2 text-blue-600" />
+                Entradas
+              </button>
+              <button
+                onClick={() => {
+                  onTabChange("suppliers");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-bold ${
+                  currentTab === "suppliers"
+                    ? "bg-white text-blue-700 shadow-xs border border-slate-200"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <Truck className="w-4 h-4 mr-2 text-emerald-600" />
+                Catálogo de Proveedores
               </button>
             </div>
           </div>

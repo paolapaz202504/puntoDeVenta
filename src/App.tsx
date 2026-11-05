@@ -11,6 +11,9 @@ import { ProductsList } from "./pages/ProductsList";
 import { CategoriesList } from "./pages/CategoriesList";
 import { BrandsList } from "./pages/BrandsList";
 import { UnitsList } from "./pages/UnitsList";
+import { SuppliersList } from "./pages/SuppliersList";
+import { RecipesList } from "./pages/RecipesList";
+import { EntriesList } from "./pages/EntriesList";
 import { ProfileModal } from "./components/modals/ProfileModal";
 import { Toaster } from "sonner";
 
@@ -26,6 +29,9 @@ export function App() {
     | "categories"
     | "brands"
     | "units"
+    | "suppliers"
+    | "recipes"
+    | "entries"
   >("products");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -55,6 +61,9 @@ export function App() {
         {currentTab === "categories" && <CategoriesList />}
         {currentTab === "brands" && <BrandsList />}
         {currentTab === "units" && <UnitsList />}
+        {currentTab === "entries" && <EntriesList />}
+        {currentTab === "suppliers" && <SuppliersList />}
+        {currentTab === "recipes" && <RecipesList />}
         {currentTab === "areas" && <AreasList />}
         {currentTab === "tables" && <TablesList />}
         {currentTab === "users" && <UsersList />}

@@ -3,6 +3,7 @@ import { api, getFileUrl } from "../services/api";
 import { Product, Category, Brand } from "../types";
 import { ProductModal } from "../components/modals/ProductModal";
 import { ProductImageModal } from "../components/modals/ProductImageModal";
+import { ProductionModal } from "../components/modals/ProductionModal";
 import { toast } from "sonner";
 import {
   Package,
@@ -19,6 +20,8 @@ import {
   Building2,
   Image as ImageIcon,
   Maximize2,
+  ChefHat,
+  AlertTriangle,
 } from "lucide-react";
 
 // Componente auxiliar para renderizar la miniatura con fondo blanco y fallback
@@ -79,6 +82,8 @@ export const ProductsList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [viewingImageProduct, setViewingImageProduct] = useState<Product | null>(null);
+  const [isProductionOpen, setIsProductionOpen] = useState(false);
+  const [productionRecipeId, setProductionRecipeId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFilterData = async () => {
@@ -170,7 +175,17 @@ export const ProductsList: React.FC = () => {
             Bebidas, alimentos e insumos de inventario ({total} productos registrados)
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex items-center space-x-2.5">
+          <button
+            onClick={() => {
+              setProductionRecipeId(null);
+              setIsProductionOpen(true);
+            }}
+            className="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer hover:scale-105"
+          >
+            <ChefHat className="w-4 h-4 mr-1.5" />
+            Elaborar en Cocina
+          </button>
           <button
             onClick={() => {
               setProductToEdit(null);
@@ -295,15 +310,15 @@ export const ProductsList: React.FC = () => {
       {/* Tabla de Datos */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+          <table className="w-full divide-y divide-slate-200 text-left text-sm table-fixed">
             <thead className="bg-slate-50/75">
               <tr>
-                <th className="px-4 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center w-16">
+                <th className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center w-14 shrink-0">
                   Foto
                 </th>
                 <th
                   onClick={() => toggleOrder("name")}
-                  className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                  className="px-3 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors w-auto"
                 >
                   <div className="flex items-center space-x-1.5">
                     <span>Producto</span>
@@ -312,19 +327,22 @@ export const ProductsList: React.FC = () => {
                 </th>
                 <th
                   onClick={() => toggleOrder("category")}
-                  className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                  className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors w-28 text-center"
                 >
-                  <div className="flex items-center space-x-1.5">
+                  <div className="flex items-center justify-center space-x-1.5">
                     <span>Categoría</span>
                     <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                 </th>
-                <th className="px-4 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right">
+                <th className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center w-24">
+                  Tipo
+                </th>
+                <th className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right w-24">
                   Costo Prom.
                 </th>
                 <th
                   onClick={() => toggleOrder("sale_price")}
-                  className="px-4 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 transition-colors"
+                  className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 transition-colors w-28"
                 >
                   <div className="flex items-center justify-end space-x-1.5">
                     <span>Precio Venta</span>
@@ -333,17 +351,17 @@ export const ProductsList: React.FC = () => {
                 </th>
                 <th
                   onClick={() => toggleOrder("current_stock")}
-                  className="px-4 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                  className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center cursor-pointer hover:bg-slate-100 transition-colors w-28"
                 >
                   <div className="flex items-center justify-center space-x-1.5">
                     <span>Stock</span>
                     <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                 </th>
-                <th className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <th className="px-3 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider w-40">
                   Presentaciones Compra
                 </th>
-                <th className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right">
+                <th className="px-2 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-right w-24">
                   Acciones
                 </th>
               </tr>
@@ -351,14 +369,14 @@ export const ProductsList: React.FC = () => {
             <tbody className="divide-y divide-slate-200 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
                     <p className="text-sm font-semibold">Cargando catálogo de productos...</p>
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                     <Package className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                     <p className="text-base font-bold text-slate-700">No se encontraron productos</p>
                     <p className="text-xs text-slate-400 mt-1">
@@ -372,10 +390,29 @@ export const ProductsList: React.FC = () => {
                 products.map((p) => {
                   const isLowStock = p.current_stock <= p.min_stock_alert;
                   const brandName = p.brand?.name || (typeof p.brand === "string" ? p.brand : null);
+                  const isBeverage = p.product_type === "MANUFACTURED";
+                  const isSubRecipe = p.product_type === "SUB_RECIPE";
+                  const canProduce = isBeverage || isSubRecipe;
+
+                  const getTypeBadge = (type: string) => {
+                    switch (type) {
+                      case "MANUFACTURED":
+                        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Refresco</span>;
+                      case "SUB_RECIPE":
+                        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Relleno</span>;
+                      case "ON_DEMAND":
+                        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">Al Momento</span>;
+                      case "RAW_MATERIAL":
+                        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Insumo</span>;
+                      default:
+                        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Venta Directa</span>;
+                    }
+                  };
+
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/75 transition-colors">
                       {/* Imagen con fondo blanco (Clic para ampliar) */}
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <td className="px-2 py-3 text-center align-middle">
                         <ProductThumbnail
                           src={getFileUrl(p.image_url)}
                           alt={p.name}
@@ -383,20 +420,22 @@ export const ProductsList: React.FC = () => {
                         />
                       </td>
 
-                      {/* Código, Nombre y Marca */}
-                      <td className="px-6 py-3 whitespace-nowrap">
+                      {/* Código, Nombre y Marca (permite múltiples líneas sin forzar scroll) */}
+                      <td className="px-3 py-3 align-middle">
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors">
+                          <span className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors break-words leading-snug">
                             {p.name}
                           </span>
-                          <div className="flex items-center gap-1.5 text-xs mt-0.5">
-                            <span className="font-mono font-bold text-slate-400">
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs mt-1">
+                            <span className="font-mono font-bold text-slate-400 shrink-0">
                               {p.code}
                             </span>
                             {brandName && (
                               <>
                                 <span className="text-slate-300">•</span>
-                                <span className="text-amber-700 font-semibold">{brandName}</span>
+                                <span className="text-amber-700 font-semibold truncate max-w-[150px]">
+                                  {brandName}
+                                </span>
                               </>
                             )}
                           </div>
@@ -404,49 +443,74 @@ export const ProductsList: React.FC = () => {
                       </td>
 
                       {/* Categoría */}
-                      <td className="px-6 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                      <td className="px-2 py-3 text-center align-middle">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 break-words text-center">
                           {p.category?.name || "Sin categoría"}
                         </span>
                       </td>
 
+                      {/* Tipo de Producto */}
+                      <td className="px-2 py-3 text-center align-middle">
+                        {getTypeBadge(p.product_type)}
+                      </td>
+
                       {/* Costo Unitario Promedio */}
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
+                      <td className="px-2 py-3 text-right align-middle">
                         <span className="font-mono text-xs font-bold text-slate-600">
                           Q {p.current_cost.toFixed(2)}
                         </span>
                       </td>
 
                       {/* Precio de Venta */}
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <span className="font-mono text-sm font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                      <td className="px-2 py-3 text-right align-middle">
+                        <span className="font-mono text-sm font-extrabold text-blue-700 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200 inline-block">
                           Q {p.sale_price.toFixed(2)}
                         </span>
                       </td>
 
-                      {/* Stock Actual */}
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold ${
-                            isLowStock
-                              ? "bg-rose-50 text-rose-700 border border-rose-200 animate-pulse"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          }`}
-                        >
-                          {p.current_stock} {p.base_unit?.symbol || "UND"}
-                        </span>
+                      {/* Stock Actual y Alertas */}
+                      <td className="px-2 py-3 text-center align-middle">
+                        <div className="flex flex-col items-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-extrabold ${
+                              isLowStock
+                                ? "bg-rose-50 text-rose-700 border border-rose-200 animate-pulse"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            }`}
+                          >
+                            {p.current_stock.toLocaleString()} {p.base_unit?.symbol || "UND"}
+                          </span>
+
+                          {/* Alerta de umbral para Refrescos o Rellenos */}
+                          {isLowStock && (
+                            <span className="text-[10px] font-bold text-rose-600 mt-1 flex items-center text-center">
+                              <AlertTriangle className="w-3 h-3 mr-0.5 text-rose-500 shrink-0" />
+                              {isBeverage
+                                ? "< 1L! Elaborar"
+                                : isSubRecipe
+                                ? "< 1 LB! Cocer"
+                                : "Stock crítico"}
+                            </span>
+                          )}
+
+                          {isBeverage && !isLowStock && (
+                            <span className="text-[10px] font-medium text-slate-400 mt-0.5">
+                              ~{(p.current_stock / 5000).toFixed(1)} cubetas (5L)
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Presentaciones de Compra */}
-                      <td className="px-6 py-3 whitespace-nowrap">
+                      <td className="px-3 py-3 align-middle">
                         {p.presentations && p.presentations.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 max-w-xs">
+                          <div className="flex flex-wrap gap-1">
                             {p.presentations.map((pres, i) => (
                               <span
                                 key={i}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap"
                               >
-                                <Boxes className="w-3 h-3 mr-1 text-amber-600" />
+                                <Boxes className="w-2.5 h-2.5 mr-1 text-amber-600 shrink-0" />
                                 {pres.name} ({pres.conversion_factor}x)
                               </span>
                             ))}
@@ -457,24 +521,39 @@ export const ProductsList: React.FC = () => {
                       </td>
 
                       {/* Acciones */}
-                      <td className="px-6 py-3 whitespace-nowrap text-right space-x-2">
-                        <button
-                          onClick={() => {
-                            setProductToEdit(p);
-                            setIsModalOpen(true);
-                          }}
-                          title="Editar producto"
-                          className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p)}
-                          title="Eliminar producto"
-                          className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <td className="px-2 py-3 text-right align-middle whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end space-x-1">
+                          {canProduce && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProductionRecipeId(p.recipes_as_final?.[0]?.id || null);
+                                setIsProductionOpen(true);
+                              }}
+                              title={isBeverage ? "Elaborar cubeta de refresco" : "Preparar tanda de relleno"}
+                              className="p-1.5 text-emerald-700 hover:text-white hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer bg-emerald-50 border border-emerald-200"
+                            >
+                              <ChefHat className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setProductToEdit(p);
+                              setIsModalOpen(true);
+                            }}
+                            title="Editar producto"
+                            className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p)}
+                            title="Eliminar producto"
+                            className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -531,6 +610,17 @@ export const ProductsList: React.FC = () => {
         categoryName={viewingImageProduct?.category?.name}
         brand={viewingImageProduct?.brand?.name || (typeof viewingImageProduct?.brand === "string" ? viewingImageProduct.brand : null)}
         code={viewingImageProduct?.code}
+      />
+
+      {/* Modal Producción Ágil de Cocina / Barra */}
+      <ProductionModal
+        isOpen={isProductionOpen}
+        onClose={() => {
+          setIsProductionOpen(false);
+          setProductionRecipeId(null);
+        }}
+        onSuccess={fetchProducts}
+        initialRecipeId={productionRecipeId}
       />
     </div>
   );

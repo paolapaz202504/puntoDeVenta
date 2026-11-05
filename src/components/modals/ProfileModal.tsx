@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { api } from "../../services/api";
 import { toast } from "sonner";
-import { X, UserCircle, KeyRound, Shield, Mail, CheckCircle2, Loader2 } from "lucide-react";
+import { X, UserCircle, KeyRound, Shield, Mail, CheckCircle2, Loader2, LogOut } from "lucide-react";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user, updateUser } = useAuthStore();
+  const { user, updateUser, logout } = useAuthStore();
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [pinCode, setPinCode] = useState(user?.pin_code || "");
@@ -178,31 +178,45 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           </div>
 
           {/* Botones */}
-          <div className="pt-4 border-t border-slate-200 flex justify-end space-x-3">
+          <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors"
+              onClick={() => {
+                onClose();
+                logout();
+              }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-rose-200 rounded-lg text-sm font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors cursor-pointer"
             >
-              Cancelar
+              <LogOut className="w-4 h-4 mr-1.5 text-rose-600" />
+              Cerrar Sesión
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all cursor-pointer"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                  Guardar Cambios
-                </>
-              )}
-            </button>
+
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex items-center px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                    Guardar Cambios
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

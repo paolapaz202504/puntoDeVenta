@@ -12,16 +12,161 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.2.2";
+export const CURRENT_VERSION = "v1.4.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.4.1",
+    date: "2026-11-04",
+    title: "Corrección de Carga de Productos y Estabilidad de Sesión en Recetas",
+    summary:
+      "Resolución del error 400 y expulsión de sesión al editar recetas: ampliación del límite de paginación en el esquema de productos, blindaje de authMiddleware para no forzar logout ante errores transitorios de base de datos, y opciones de respaldo instantáneas en los selectores de RecipeModal.",
+    isLatest: true,
+    changes: [
+      {
+        type: "fix",
+        description:
+          "Corrección de validación Zod en productos: Ampliación del parámetro 'limit' a un máximo de 500 ítems en backend y ajuste a 100 ítems en RecipeModal para prevenir errores 400 Bad Request.",
+      },
+      {
+        type: "security",
+        description:
+          "Blindaje de autenticación (authMiddleware): Separación de errores de token JWT de los errores de base de datos para evitar que caídas o demoras de conexión retornen 401 y expulsen al usuario del sistema.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Carga resiliente en RecipeModal: Inclusión de opciones de respaldo en los selectores de producto final e ingredientes para garantizar la visualización inmediata de datos al editar.",
+      },
+    ],
+  },
+  {
+    version: "v1.4.0",
+    date: "2026-11-04",
+    title: "CRUD Completo, Paginación y Ordenamiento en Recetas y Fórmulas Base",
+    summary:
+      "Transformación del submódulo de Recetas en un catálogo interactivo completo: listado tabular con paginación, ordenamiento por columnas, búsqueda dinámica por nombre de receta o producto, y operaciones CRUD (Crear, Actualizar y Eliminar) con validación estricta de protección referencial contra registros de producción o elaboración asociados.",
+    isLatest: false,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Listado de Recetas con Paginación y Ordenamiento: Vista tabular con paginación (10 recetas por página), ordenamiento ascendente/descendente por nombre, tipo, rendimiento y fecha de creación, y buscador predictivo por nombre.",
+      },
+      {
+        type: "feature",
+        description:
+          "Modal de Creación y Edición de Recetas (RecipeModal): Formulario paramétrico con selector de producto final, tipo de receta, rendimiento base, desglose dinámico de ingredientes e insumos con cálculo en tiempo real del costo de la tanda.",
+      },
+      {
+        type: "security",
+        description:
+          "Protección de Integridad Referencial en Eliminación: Bloqueo transaccional en backend y frontend que impide eliminar recetas que ya cuenten con registros de producción o elaboración en cocina.",
+      },
+    ],
+  },
+  {
+    version: "v1.3.2",
+    date: "2026-11-04",
+    title: "Optimización de Diseño y Ancho Fijo en Catálogo de Productos",
+    summary:
+      "Mejora ergonómica en el listado de productos: eliminación de la barra de pestañas superior, preservación de los filtros avanzados de búsqueda/categoría/marca/presentación, y eliminación del scroll horizontal en computadoras con soporte multilínea para nombres extensos.",
+    isLatest: false,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Retiro del filtro superior por pestañas de familias, dejando una interfaz más limpia y directa en el inventario.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Preservación y protagonismo de la barra de filtros rápidos: Búsqueda por código/nombre, Categorías, Marcas/Empresas y Presentaciones de compra.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Ancho fijo sin scroll horizontal (table-fixed): La tabla ocupa exactamente el 100% de la resolución del monitor, permitiendo que nombres largos de productos se muestren en dos, tres o más líneas sin desbordamiento.",
+      },
+    ],
+  },
+  {
+    version: "v1.3.1",
+    date: "2026-11-04",
+    title: "Optimización de Menú Principal y Módulo de Entradas",
+    summary:
+      "Rediseño ergonómico de la barra de navegación superior: retiro del tag 'POS Restaurante', simplificación del perfil de usuario con icono y nombre, traslado del botón 'Cerrar Sesión' al modal de perfil, y creación del menú independiente 'Entradas' con recepción de compras y catálogo de proveedores.",
+    isLatest: false,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Limpieza visual del encabezado: Eliminación del badge estático 'POS Restaurante' junto al logotipo para un aspecto más sobrio y profesional.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Identificador de usuario simplificado: Reemplazo del bloque extenso de usuario y roles por un acceso directo con icono de usuario y nombre en un solo clic.",
+      },
+      {
+        type: "security",
+        description:
+          "Cierre de sesión seguro: Reubicación del botón 'Cerrar Sesión' dentro del panel modal 'Mi Perfil' para evitar pulsaciones accidentales en la barra superior.",
+      },
+      {
+        type: "feature",
+        description:
+          "Nuevo Menú 'Entradas': Creación del menú principal desplegable 'Entradas' con la nueva vista de gestión de entradas/compras y el traslado del Catálogo de Proveedores desde Inventario.",
+      },
+    ],
+  },
+  {
+    version: "v1.3.0",
+    date: "2026-11-04",
+    title: "Módulo de Productos Preparados, Recetas Ágiles y Proveedores",
+    summary:
+      "Lanzamiento de la arquitectura de productos preparados: 9 refrescos naturales en cubetas variables de 1 a 10L, 6 licuados al momento, 10 alimentos con sub-ensambles por libra, catálogo de proveedores y botón de elaboración en cocina en 1 solo clic.",
+    isLatest: false,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Catálogo de Proveedores: Registro y gestión de distribuidores de frutas, carnes, panadería, lácteos y abarrotes con conteo de insumos suministrados.",
+      },
+      {
+        type: "feature",
+        description:
+          "Catálogo de Recetas y Fórmulas Base: 29 recetas configuradas (refrescos escalables, sub-ensambles por libra de cocina y ensambles directos de mostrador).",
+      },
+      {
+        type: "feature",
+        description:
+          "Elaboración Ágil en Cocina / Barra (1 Clic): Modal interactivo para preparar cubetas de 1 a 10 Litros y tandas de rellenos por libra con deducción atómica de materias primas y cálculo de costo real.",
+      },
+      {
+        type: "feature",
+        description:
+          "Monitoreo y Alerta Temprana de Stock Crítico: Alertas automáticas para refrescos (< 1 Litro / 1000 ML) y rellenos de cocina (< 1 Libra) con badges visuales en inventario.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Filtros avanzados por naturaleza de producto (Refrescos, Licuados y Alimentos, Rellenos, Materias Primas, Venta Directa) en el catálogo de productos.",
+      },
+      {
+        type: "cloud",
+        description:
+          "Sincronización de esquemas relacionales (suppliers, recipes, recipe_items, production_batches, production_batch_items) en TiDB Cloud Serverless (refresqueriadbdev).",
+      },
+    ],
+  },
   {
     version: "v1.2.2",
     date: "2026-11-04",
     title: "Sistema de Control de Cambios y Versionado Semántico",
     summary:
       "Incorporación del historial interactivo de cambios en la interfaz de usuario y formalización del protocolo de versionado en pmAgent para seguimiento de cada incremento funcional.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
