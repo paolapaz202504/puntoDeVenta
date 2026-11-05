@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.7.0";
+export const CURRENT_VERSION = "v1.7.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.7.1",
+    date: "2026-11-05",
+    title: "Selección Visual de Mesas y Espacios por Área con Tags en Comanda POS",
+    summary:
+      "Modernización de la Comanda en el Punto de Venta (POS): al seleccionar tipo de venta 'Mesa', se reemplaza el desplegable select por una fila dedicada para cada Área con paletas de colores diferenciadas y botones tipo tag interactivos para cada mesa o espacio de trabajo, permitiendo visualizar y seleccionar con un solo clic.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Filas por Área con Colores Diferenciados: Cada área de restaurante (Mesas, Refresquería Grande, Refresquería Pequeña, etc.) cuenta con una fila contenedora estilizada con su propia paleta de color (esmeralda, azul, ámbar, púrpura, rosa, turquesa) y distintivo de área.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Tags Interactivos de Mesas y Espacios: Todas las mesas y espacios de trabajo permanecen visibles simultáneamente en pantalla como tags interactivos que muestran checkmark y realce visual al seleccionarse.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Validación y Trazabilidad en Cobro y Recibo: Validación obligatoria para evitar cobros de mesa sin asignación previa, visualización de la mesa seleccionada en el modal de cobro y registro de la mesa y área en el comprobante final de venta.",
+      },
+    ],
+  },
   {
     version: "v1.7.0",
     date: "2026-11-05",
     title: "Control de Categorías en POS, Barra Multilínea con Iconos y Catálogo Visual Ágil",
     summary:
       "Mejoras sustanciales en el Punto de Venta (POS) y Catálogo de Categorías: campo booleano 'Mostrar en POS' en categorías para ocultar insumos internos y sub-ensambles, reemplazo del scroll horizontal de categorías por envoltura multilínea enriquecida con iconos contextuales, y rediseño visual de tarjetas de producto con imágenes prominentes y textos compactos para agilizar el despacho.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",

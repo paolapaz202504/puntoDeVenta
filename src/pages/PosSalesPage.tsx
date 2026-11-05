@@ -22,6 +22,8 @@ import {
   Sparkles,
   UtensilsCrossed,
   Tag,
+  Armchair,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,6 +72,46 @@ const getCategoryIcon = (categoryName: string) => {
   return <Tag className="w-3.5 h-3.5 mr-1.5 text-slate-500 shrink-0" />;
 };
 
+// Paletas de color diferenciadas para cada Área en la Comanda POS
+const AREA_PALETTES = [
+  {
+    areaBadge: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    containerBg: "bg-emerald-50/70 border-emerald-200",
+    tagDefault: "bg-white text-emerald-950 border-emerald-300 hover:border-emerald-500 hover:bg-emerald-100/60",
+    tagSelected: "bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/60 font-black",
+  },
+  {
+    areaBadge: "bg-blue-100 text-blue-800 border-blue-300",
+    containerBg: "bg-blue-50/70 border-blue-200",
+    tagDefault: "bg-white text-blue-950 border-blue-300 hover:border-blue-500 hover:bg-blue-100/60",
+    tagSelected: "bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/60 font-black",
+  },
+  {
+    areaBadge: "bg-amber-100 text-amber-800 border-amber-300",
+    containerBg: "bg-amber-50/70 border-amber-200",
+    tagDefault: "bg-white text-amber-950 border-amber-300 hover:border-amber-500 hover:bg-amber-100/60",
+    tagSelected: "bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/60 font-black",
+  },
+  {
+    areaBadge: "bg-purple-100 text-purple-800 border-purple-300",
+    containerBg: "bg-purple-50/70 border-purple-200",
+    tagDefault: "bg-white text-purple-950 border-purple-300 hover:border-purple-500 hover:bg-purple-100/60",
+    tagSelected: "bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/60 font-black",
+  },
+  {
+    areaBadge: "bg-rose-100 text-rose-800 border-rose-300",
+    containerBg: "bg-rose-50/70 border-rose-200",
+    tagDefault: "bg-white text-rose-950 border-rose-300 hover:border-rose-500 hover:bg-rose-100/60",
+    tagSelected: "bg-rose-600 text-white border-rose-600 shadow-sm ring-2 ring-rose-400/60 font-black",
+  },
+  {
+    areaBadge: "bg-teal-100 text-teal-800 border-teal-300",
+    containerBg: "bg-teal-50/70 border-teal-200",
+    tagDefault: "bg-white text-teal-950 border-teal-300 hover:border-teal-500 hover:bg-teal-100/60",
+    tagSelected: "bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/60 font-black",
+  },
+];
+
 export const PosSalesPage: React.FC = () => {
   const [products, setProducts] = useState<PosProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -104,7 +146,7 @@ export const PosSalesPage: React.FC = () => {
       const [prodRes, catRes, tablesRes] = await Promise.all([
         api.get("/sales/pos-products"),
         api.get("/categories?limit=100"),
-        api.get("/tables?limit=50"),
+        api.get("/tables?limit=200"),
       ]);
 
       const allCats: Category[] = catRes.data.items || catRes.data.data || [];
@@ -135,6 +177,38 @@ export const PosSalesPage: React.FC = () => {
       p.code.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  // Agrupar mesas por Área para selección visual directa en POS
+  const tablesByArea = React.useMemo(() => {
+    const map = new Map<string, { areaId: string; areaName: string; tables: RestaurantTable[] }>();
+
+    tables.forEach((tbl) => {
+      const areaId = tbl.area?.id || tbl.area_id || "sin-area";
+      const areaName = tbl.area?.name || "Otras Mesas / General";
+
+      if (!map.has(areaId)) {
+        map.set(areaId, {
+          areaId,
+          areaName,
+          tables: [],
+        });
+      }
+      map.get(areaId)!.tables.push(tbl);
+    });
+
+    return Array.from(map.values())
+      .map((group) => ({
+        ...group,
+        tables: [...group.tables].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+        ),
+      }))
+      .sort((a, b) => a.areaName.localeCompare(b.areaName));
+  }, [tables]);
+
+  const selectedTable = React.useMemo(() => {
+    return tables.find((t) => t.id === selectedTableId) || null;
+  }, [tables, selectedTableId]);
 
   // Operaciones del Carrito
   const addToCart = (product: PosProduct) => {
@@ -188,6 +262,10 @@ export const PosSalesPage: React.FC = () => {
       toast.error("El carrito de compras está vacío");
       return;
     }
+    if (saleType === "MESA" && !selectedTableId) {
+      toast.error("Por favor seleccione una mesa o espacio de trabajo");
+      return;
+    }
     setCashReceived(cartTotal.toFixed(2));
     setIsCheckoutOpen(true);
   };
@@ -197,6 +275,11 @@ export const PosSalesPage: React.FC = () => {
 
   const handleConfirmSale = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (saleType === "MESA" && !selectedTableId) {
+      toast.error("Debe seleccionar una mesa o espacio de trabajo");
+      return;
+    }
 
     if (paymentMethod === "EFECTIVO" && cashNum < cartTotal) {
       toast.error(`El monto recibido (Q ${cashNum.toFixed(2)}) es menor al total a cobrar (Q ${cartTotal.toFixed(2)})`);
@@ -448,22 +531,76 @@ export const PosSalesPage: React.FC = () => {
             </div>
 
             {saleType === "MESA" && (
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                  Seleccionar Mesa
-                </label>
-                <select
-                  value={selectedTableId}
-                  onChange={(e) => setSelectedTableId(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">-- Asignar Mesa / Espacio --</option>
-                  {tables.map((tbl) => (
-                    <option key={tbl.id} value={tbl.id}>
-                      {tbl.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-2 pt-1 border-t border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-slate-700">
+                    <Armchair className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">
+                      Mesas y Espacios por Área
+                    </span>
+                  </div>
+                  {selectedTable ? (
+                    <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full">
+                      <Check className="w-3 h-3 mr-1 text-emerald-600" />
+                      {selectedTable.name}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-amber-600 font-bold animate-pulse">
+                      * Elija una mesa
+                    </span>
+                  )}
+                </div>
+
+                {tablesByArea.length === 0 ? (
+                  <div className="p-3 text-center text-xs text-slate-400 bg-white rounded-lg border border-dashed border-slate-200">
+                    No hay mesas o espacios configurados
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                    {tablesByArea.map((group, idx) => {
+                      const palette = AREA_PALETTES[idx % AREA_PALETTES.length];
+                      return (
+                        <div
+                          key={group.areaId}
+                          className={`p-2 rounded-xl border ${palette.containerBg} transition-all`}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span
+                              className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border ${palette.areaBadge}`}
+                            >
+                              {group.areaName}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-600">
+                              {group.tables.length} {group.tables.length === 1 ? "mesa" : "mesas"}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            {group.tables.map((tbl) => {
+                              const isSelected = selectedTableId === tbl.id;
+                              return (
+                                <button
+                                  key={tbl.id}
+                                  type="button"
+                                  onClick={() => setSelectedTableId(tbl.id)}
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border ${
+                                    isSelected
+                                      ? palette.tagSelected
+                                      : palette.tagDefault
+                                  }`}
+                                  title={`Seleccionar ${tbl.name} (${group.areaName})`}
+                                >
+                                  {isSelected && <Check className="w-3 h-3 mr-1 shrink-0" />}
+                                  <span>{tbl.name}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -560,7 +697,14 @@ export const PosSalesPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Finalizar Cobro de Venta</h3>
-                  <p className="text-xs text-slate-500">Cliente: {customerName}</p>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <p className="text-xs text-slate-500">Cliente: <span className="font-semibold text-slate-700">{customerName}</span></p>
+                    {saleType === "MESA" && selectedTable && (
+                      <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                        Mesa: {selectedTable.name} ({selectedTable.area?.name || "General"})
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button
@@ -773,6 +917,14 @@ export const PosSalesPage: React.FC = () => {
                 <span className="text-slate-500">Cliente:</span>
                 <span className="font-bold text-slate-800">{lastSaleReceipt.customer_name}</span>
               </div>
+              {lastSaleReceipt.table && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Mesa / Espacio:</span>
+                  <span className="font-bold text-blue-700">
+                    {lastSaleReceipt.table.name} {lastSaleReceipt.table.area?.name ? `(${lastSaleReceipt.table.area.name})` : ""}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-500">Método de Pago:</span>
                 <span className="font-bold text-slate-800">{lastSaleReceipt.payment_method}</span>
