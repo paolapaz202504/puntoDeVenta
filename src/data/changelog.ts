@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.4.2";
+export const CURRENT_VERSION = "v1.4.3";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.4.3",
+    date: "2026-11-05",
+    title: "Enrutamiento Estricto DEV/PROD y Depuración de Bases de Datos Test",
+    summary:
+      "Aislamiento y enrutamiento formal de bases de datos: DEV apunta estrictamente a 'refresqueriadbdev' y PROD a 'refresqueriadbprod'. Eliminación segura de las bases de datos temporales 'test' en ambos clústeres TiDB Cloud sin pérdida de datos, y migración integral garantizando 83 productos y 29 recetas sincronizadas.",
+    isLatest: true,
+    changes: [
+      {
+        type: "cloud",
+        description:
+          "Enrutamiento estricto en backend (env.ts y db.ts): Sanitización e inyección explícita de URL de base de datos para garantizar que producción use 'refresqueriadbprod' y desarrollo 'refresqueriadbdev', previniendo conexiones accidentales.",
+      },
+      {
+        type: "security",
+        description:
+          "Depuración de esquemas en TiDB Cloud: Eliminación definitiva de las bases de datos por defecto 'test' en DEV y PROD tras verificar paridad total (83 productos, 29 recetas, 5 proveedores).",
+      },
+      {
+        type: "improvement",
+        description:
+          "Persistencia y paridad garantizada: Migración completa de todas las recetas, materias primas, insumos y productos terminados con integridad transaccional.",
+      },
+    ],
+  },
   {
     version: "v1.4.2",
     date: "2026-11-05",
     title: "Renovación Automática de Sesión y Sesión Deslizante (Silent Refresh)",
     summary:
       "Implementación de la arquitectura de sesión deslizante y auto-refresco transparente: eliminación de expulsiones por inactividad mediante renovación en segundo plano cada 15 minutos, refresco al reenfocar la pestaña del navegador y reintento automático de peticiones con re-emisión de token bajo ventana de gracia.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
