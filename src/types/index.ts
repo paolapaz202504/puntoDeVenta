@@ -447,47 +447,74 @@ export interface FinancialFlowSummary {
 }
 
 export interface DashboardMetrics {
-  today: {
-    salesTotal: number;
-    salesCount: number;
-    outflowsTotal: number;
-    netBalance: number;
+  period: {
+    startDate: string;
+    endDate: string;
   };
-  month: {
+  summary: {
     salesTotal: number;
     purchasesTotal: number;
     expensesTotal: number;
-    outflowsTotal: number;
     netProfit: number;
   };
+  dailyTrend: Array<{
+    date: string;
+    label: string;
+    sales: number;
+    purchases: number;
+    expenses: number;
+    profit: number;
+  }>;
+  categories: Array<{
+    id: string;
+    name: string;
+  }>;
+  sales: Array<{
+    id: string;
+    sale_date: string;
+    total: number;
+    items: Array<{
+      product_id: string;
+      product_name: string;
+      category_id: string;
+      category_name: string;
+      quantity: number;
+      unit_price: number;
+      subtotal: number;
+    }>;
+  }>;
+  purchases: Array<{
+    id: string;
+    entry_date: string;
+    total_cost: number;
+    items: Array<{
+      product_id: string;
+      product_name: string;
+      category_id: string;
+      category_name: string;
+      quantity: number;
+      unit_cost: number;
+      total_cost: number;
+    }>;
+  }>;
+  expenses: Array<{
+    id: string;
+    expense_date: string;
+    category: string;
+    description: string;
+    amount: number;
+  }>;
   criticalInventory: {
     totalCritical: number;
     products: Array<{
       id: string;
       code: string;
       name: string;
+      category_id: string;
+      category_name: string;
       current_stock: number;
       min_stock_alert: number;
       unit_symbol: string;
     }>;
   };
-  chartData: Array<{
-    date: string;
-    sales: number;
-    outflows: number;
-  }>;
-  topProducts: Array<{
-    name: string;
-    quantity: number;
-    revenue: number;
-  }>;
-  recentSales: Array<{
-    id: string;
-    sale_number: string;
-    customer_name: string;
-    sale_date: string;
-    total: number;
-    payment_method: string;
-    status: string;
-  }>;
 }

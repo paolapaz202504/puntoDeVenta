@@ -12,16 +12,56 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.6.0";
+export const CURRENT_VERSION = "v1.6.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.6.1",
+    date: "2026-11-05",
+    title: "Dashboard Avanzado con Filtro de Temporalidad, Gráfico Multi-Líneas y Agrupación Temporal",
+    summary:
+      "Potenciación del Tablero Administrativo: filtros de fecha dd/mm/yyyy con horarios internos estrictos (00:00:00 a 23:59:59), tags de selección rápida (Hoy, Semana, Mes, Dos Meses), gráfico de líneas diario con los 4 montos (Ventas, Compras, Gastos y Utilidad), y gráficos de barras interactivos con granularidad temporal dinámica (Hora, Día, Semana del Mes, Año) y filtros de categoría para Ventas, Compras, Gastos e Inventario.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Filtro de Temporalidad y Tags Rápidos: Entradas de fecha en formato dd/mm/yyyy abarcando automáticamente desde 00:00:00 hasta 23:59:59, con botones de un clic para 'Hoy', 'Semana' (-7 días), 'Mes' (-1 mes) y 'Dos Meses' (-2 meses).",
+      },
+      {
+        type: "feature",
+        description:
+          "Gráfico de Líneas Multi-Serie Diario: Visualización de los 4 montos clave (Ventas, Compras, Gastos y Utilidad) día por día en el período seleccionado, con puntos interactivos y tooltips detallados.",
+      },
+      {
+        type: "feature",
+        description:
+          "Ventas Dinámicas: Gráficos de barras con selector de agrupación temporal (Hora, Día, Semana del mes, Año) y filtrado en tiempo real por categoría de producto.",
+      },
+      {
+        type: "feature",
+        description:
+          "Compras Dinámicas: Gráficos de barras para mercadería recibida e insumos con granularidad temporal (Hora, Día, Semana, Año) y filtrado por categoría.",
+      },
+      {
+        type: "feature",
+        description:
+          "Gastos de Operación Dinámicos: Gráficos de barras para costos operativos con agrupación temporal y filtrado por tipo de gasto (Planilla, Energía, SAT, etc.).",
+      },
+      {
+        type: "feature",
+        description:
+          "Inventario Inteligente: Gráfico de productos más vendidos con granularidad temporal y filtro por categoría, junto con la tarjeta de alertas de Stock Crítico y Reposición Requerida.",
+      },
+    ],
+  },
   {
     version: "v1.6.0",
     date: "2026-11-05",
     title: "Módulo Financiero, Punto de Venta (POS), Dashboard Administrativo y Rutas por Rol",
     summary:
       "Gran actualización con el lanzamiento del Módulo Financiero (Gastos Operativos, Egresos Unificados y Flujo de Caja), Sistema de Punto de Venta (POS) ágil con control estricto de existencias, Tablero Administrativo con gráficos y métricas para Administradores, navegación y páginas de inicio configurables por rol con restricción exclusiva para Cajero, y desacoplamiento total de proveedores en el catálogo de productos.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
