@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.4.1";
+export const CURRENT_VERSION = "v1.4.2";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.4.2",
+    date: "2026-11-05",
+    title: "Renovación Automática de Sesión y Sesión Deslizante (Silent Refresh)",
+    summary:
+      "Implementación de la arquitectura de sesión deslizante y auto-refresco transparente: eliminación de expulsiones por inactividad mediante renovación en segundo plano cada 15 minutos, refresco al reenfocar la pestaña del navegador y reintento automático de peticiones con re-emisión de token bajo ventana de gracia.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Nuevo endpoint de renovación `/api/auth/refresh`: Valida la firma del token con ventana de gracia de 7 días, confirma la actividad del usuario en base de datos y emite un token JWT actualizado con roles y permisos vigentes.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Monitor proactivo en Frontend (App.tsx): Verificación periódica cada 15 minutos y oyentes automáticos de 'visibilitychange' y 'focus' para refrescar el token silenciosamente antes de que caduque al volver a la aplicación.",
+      },
+      {
+        type: "fix",
+        description:
+          "Reintento silencioso en Axios (api.ts): Intercepción reactiva de respuestas 401 para pausar la petición, renovar el token automáticamente y reintentar la operación original de forma 100% transparente sin interrumpir al usuario.",
+      },
+    ],
+  },
   {
     version: "v1.4.1",
     date: "2026-11-04",
     title: "Corrección de Carga de Productos y Estabilidad de Sesión en Recetas",
     summary:
       "Resolución del error 400 y expulsión de sesión al editar recetas: ampliación del límite de paginación en el esquema de productos, blindaje de authMiddleware para no forzar logout ante errores transitorios de base de datos, y opciones de respaldo instantáneas en los selectores de RecipeModal.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "fix",

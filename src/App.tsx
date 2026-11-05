@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "./store/authStore";
+import { checkAndRefreshToken } from "./services/api";
 import { Login } from "./pages/Login";
 import { Navbar } from "./components/layout/Navbar";
 import { UsersList } from "./pages/UsersList";
@@ -34,6 +35,35 @@ export function App() {
     | "entries"
   >("products");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Monitor proactivo de renovación de sesión (Silent Refresh)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // 1. Verificación inicial al cargar la aplicación
+    checkAndRefreshToken();
+
+    // 2. Temporizador periódico cada 15 minutos (900,000 ms)
+    const intervalId = setInterval(() => {
+      checkAndRefreshToken();
+    }, 15 * 60 * 1000);
+
+    // 3. Listener al volver a enfocar la pestaña tras inactividad
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible") {
+        checkAndRefreshToken();
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+    };
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return (
