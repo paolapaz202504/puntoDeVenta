@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { api } from "../services/api";
+import { api, getFileUrl } from "../services/api";
 import { Category, RestaurantTable } from "../types";
 import {
   Search,
@@ -16,6 +16,12 @@ import {
   Receipt,
   User,
   Coffee,
+  Layers,
+  GlassWater,
+  Beer,
+  Sparkles,
+  UtensilsCrossed,
+  Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,6 +45,30 @@ interface CartItem {
   quantity: number;
   unit_price: number;
 }
+
+// Helper para icono contextual de categoría en POS
+const getCategoryIcon = (categoryName: string) => {
+  const norm = categoryName.toLowerCase();
+  if (norm.includes("gaseosa") || norm.includes("soda") || norm.includes("bebida")) {
+    return <GlassWater className="w-3.5 h-3.5 mr-1.5 text-blue-500 shrink-0" />;
+  }
+  if (norm.includes("agua")) {
+    return <GlassWater className="w-3.5 h-3.5 mr-1.5 text-sky-500 shrink-0" />;
+  }
+  if (norm.includes("jugo") || norm.includes("refresco") || norm.includes("licuado")) {
+    return <Coffee className="w-3.5 h-3.5 mr-1.5 text-amber-500 shrink-0" />;
+  }
+  if (norm.includes("alimento") || norm.includes("comida") || norm.includes("pan") || norm.includes("tostada")) {
+    return <UtensilsCrossed className="w-3.5 h-3.5 mr-1.5 text-emerald-500 shrink-0" />;
+  }
+  if (norm.includes("cerveza") || norm.includes("licor")) {
+    return <Beer className="w-3.5 h-3.5 mr-1.5 text-amber-600 shrink-0" />;
+  }
+  if (norm.includes("postre") || norm.includes("dulce")) {
+    return <Sparkles className="w-3.5 h-3.5 mr-1.5 text-purple-500 shrink-0" />;
+  }
+  return <Tag className="w-3.5 h-3.5 mr-1.5 text-slate-500 shrink-0" />;
+};
 
 export const PosSalesPage: React.FC = () => {
   const [products, setProducts] = useState<PosProduct[]>([]);
@@ -73,12 +103,16 @@ export const PosSalesPage: React.FC = () => {
       setLoading(true);
       const [prodRes, catRes, tablesRes] = await Promise.all([
         api.get("/sales/pos-products"),
-        api.get("/categories?limit=50"),
+        api.get("/categories?limit=100"),
         api.get("/tables?limit=50"),
       ]);
 
+      const allCats: Category[] = catRes.data.items || catRes.data.data || [];
+      // Filtrar categorías que están configuradas para mostrar en POS
+      const posCats = allCats.filter((c) => c.show_in_pos !== false);
+
       setProducts(prodRes.data || []);
-      setCategories(catRes.data.items || catRes.data.data || []);
+      setCategories(posCats);
       setTables(tablesRes.data.items || tablesRes.data.data || []);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Error al cargar productos del Punto de Venta");
@@ -238,17 +272,18 @@ export const PosSalesPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Píldoras de Categorías */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-thin">
+            {/* Píldoras de Categorías con desborde multilínea e iconos */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setSelectedCategory("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedCategory === "ALL"
                     ? "bg-blue-600 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80"
                 }`}
               >
+                <Layers className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                 Todas las Categorías
               </button>
               {categories.map((cat) => (
@@ -256,19 +291,20 @@ export const PosSalesPage: React.FC = () => {
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === cat.id
                       ? "bg-blue-600 text-white shadow-xs"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80"
                   }`}
                 >
+                  {getCategoryIcon(cat.name)}
                   {cat.name}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Grid de Productos */}
+          {/* Grid de Productos - Con Imagen Prominente y Textos Compactos */}
           {loading ? (
             <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center">
               <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
@@ -281,47 +317,74 @@ export const PosSalesPage: React.FC = () => {
               <p className="text-xs text-slate-400 mt-1">Pruebe con otra categoría o término de búsqueda.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
               {filteredProducts.map((p) => {
                 const isOutOfStock = p.current_stock <= 0;
                 return (
                   <button
                     key={p.id}
                     onClick={() => addToCart(p)}
-                    className="bg-white p-3.5 rounded-2xl border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all text-left flex flex-col justify-between group relative cursor-pointer"
+                    className="bg-white p-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left flex flex-col justify-between group relative cursor-pointer"
                   >
                     <div>
-                      {/* Categoría y Stock */}
-                      <div className="flex items-center justify-between text-[11px] mb-1.5">
-                        <span className="font-semibold text-slate-500 truncate max-w-[100px]">
-                          {p.category.name}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded-md font-mono font-bold text-[10px] ${
-                            isOutOfStock
-                              ? "bg-rose-100 text-rose-700"
-                              : p.current_stock <= p.min_stock_alert
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-emerald-100 text-emerald-700"
+                      {/* Imagen Prominente del Producto */}
+                      <div className="w-full aspect-square bg-slate-50 rounded-xl overflow-hidden mb-2 relative flex items-center justify-center p-2 border border-slate-100">
+                        {p.image_url ? (
+                          <img
+                            src={getFileUrl(p.image_url)}
+                            alt={p.name}
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = "none";
+                              const fallback = target.parentElement?.querySelector(".img-fallback");
+                              if (fallback) (fallback as HTMLElement).style.display = "flex";
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`img-fallback w-full h-full flex flex-col items-center justify-center text-slate-300 ${
+                            p.image_url ? "hidden" : "flex"
                           }`}
                         >
-                          {p.current_stock} {p.base_unit.symbol}
-                        </span>
+                          <Coffee className="w-10 h-10 text-slate-300" />
+                        </div>
+
+                        {/* Badge de Stock en la esquina superior */}
+                        <div className="absolute top-1.5 right-1.5">
+                          <span
+                            className={`px-1.5 py-0.5 rounded-md font-mono font-bold text-[9px] shadow-xs ${
+                              isOutOfStock
+                                ? "bg-rose-100 text-rose-700 border border-rose-200"
+                                : p.current_stock <= p.min_stock_alert
+                                ? "bg-amber-100 text-amber-700 border border-amber-200"
+                                : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            }`}
+                          >
+                            {isOutOfStock ? "Agotado" : `${p.current_stock} ${p.base_unit.symbol}`}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Nombre del Producto */}
-                      <h4 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                      {/* Categoría reducida */}
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider truncate block leading-none mb-1">
+                        {p.category.name}
+                      </span>
+
+                      {/* Nombre del Producto reducido para priorizar guía visual */}
+                      <h4 className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug min-h-[30px]" title={p.name}>
                         {p.name}
                       </h4>
                     </div>
 
                     {/* Precio y Botón Agregar */}
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-base font-black text-slate-900 font-mono">
+                    <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-sm font-black text-slate-900 font-mono">
                         Q {p.sale_price.toFixed(2)}
                       </span>
-                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all">
-                        <Plus className="w-4 h-4" />
+                      <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all">
+                        <Plus className="w-3.5 h-3.5" />
                       </div>
                     </div>
                   </button>

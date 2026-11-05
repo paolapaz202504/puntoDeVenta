@@ -16,6 +16,7 @@ import {
   Calendar,
   AlertTriangle,
   Package,
+  ShoppingCart,
 } from "lucide-react";
 
 export const CategoriesList: React.FC = () => {
@@ -162,6 +163,9 @@ export const CategoriesList: React.FC = () => {
                 <th className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Productos Asignados
                 </th>
+                <th className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider text-center">
+                  En POS
+                </th>
                 <th
                   onClick={() => toggleOrder("created_at")}
                   className="px-6 py-3.5 text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
@@ -179,14 +183,14 @@ export const CategoriesList: React.FC = () => {
             <tbody className="divide-y divide-slate-200 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
                     <p className="text-sm font-semibold">Cargando categorías...</p>
                   </td>
                 </tr>
               ) : categories.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     <Tag className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                     <p className="text-base font-bold text-slate-700">No se encontraron categorías</p>
                     <p className="text-xs text-slate-400 mt-1">
@@ -197,6 +201,7 @@ export const CategoriesList: React.FC = () => {
               ) : (
                 categories.map((category) => {
                   const productCount = category._count?.products || 0;
+                  const isVisibleInPos = category.show_in_pos !== false;
                   return (
                     <tr key={category.id} className="hover:bg-slate-50/75 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -223,6 +228,18 @@ export const CategoriesList: React.FC = () => {
                           <Package className="w-3.5 h-3.5 mr-1" />
                           {productCount} {productCount === 1 ? "producto" : "productos"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {isVisibleInPos ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <ShoppingCart className="w-3 h-3 mr-1" />
+                            Visible
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                            Oculto
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
                         <div className="flex items-center space-x-1.5">

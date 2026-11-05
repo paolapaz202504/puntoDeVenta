@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.6.3";
+export const CURRENT_VERSION = "v1.7.0";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.7.0",
+    date: "2026-11-05",
+    title: "Control de Categorías en POS, Barra Multilínea con Iconos y Catálogo Visual Ágil",
+    summary:
+      "Mejoras sustanciales en el Punto de Venta (POS) y Catálogo de Categorías: campo booleano 'Mostrar en POS' en categorías para ocultar insumos internos y sub-ensambles, reemplazo del scroll horizontal de categorías por envoltura multilínea enriquecida con iconos contextuales, y rediseño visual de tarjetas de producto con imágenes prominentes y textos compactos para agilizar el despacho.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Campo 'Mostrar en Nueva Venta (POS)' en Categorías: Opción configurable en Catálogo de Categorías (BD y formulario modal) con visualización de estado 'Visible' / 'Oculto'. Categorías internas como 'Insumos' y 'Sub-ensambles de Cocina' quedan excluidas de POS.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Barra de Categorías Multilínea con Iconografía: Se eliminó el scroll horizontal reemplazándolo por envoltura automática en dos o más líneas con iconos contextuales por categoría (bebidas, aguas, licuados, alimentos, etc.).",
+      },
+      {
+        type: "improvement",
+        description:
+          "Tarjetas de Producto Centradas en la Imagen: Los productos muestran ahora su imagen en proporción destacada con badge de existencia en esquina superior y textos compactos para que el cajero se guíe visualmente a máxima velocidad.",
+      },
+    ],
+  },
   {
     version: "v1.6.3",
     date: "2026-11-05",
     title: "Optimización de UI: Retiro de Botón 'Nueva Venta (POS)' en Dashboard",
     summary:
       "Alineación visual del Tablero Administrativo retirando el botón de acción directa 'Nueva Venta (POS)' en la cabecera del dashboard, manteniendo exclusivamente el botón de actualización de datos y preservando el acceso a ventas desde el menú lateral y la navegación de roles.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "improvement",

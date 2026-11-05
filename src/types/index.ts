@@ -115,6 +115,7 @@ export interface Category {
   id: string;
   name: string;
   description?: string | null;
+  show_in_pos?: boolean;
   created_at: string;
   updated_at: string;
   created_by?: string | null;

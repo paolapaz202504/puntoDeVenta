@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { toast } from "sonner";
-import { X, Tag, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { X, Tag, CheckCircle2, Loader2, AlertCircle, ShoppingCart } from "lucide-react";
 import { Category } from "../../types";
 
 interface CategoryModalProps {
@@ -19,6 +19,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [showInPos, setShowInPos] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -26,9 +27,11 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
     if (categoryToEdit) {
       setName(categoryToEdit.name);
       setDescription(categoryToEdit.description || "");
+      setShowInPos(categoryToEdit.show_in_pos ?? true);
     } else {
       setName("");
       setDescription("");
+      setShowInPos(true);
     }
     setErrorMsg("");
   }, [categoryToEdit, isOpen]);
@@ -56,12 +59,14 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
         await api.put(`/categories/${categoryToEdit.id}`, {
           name: name.trim(),
           description: description.trim() || null,
+          show_in_pos: showInPos,
         });
         toast.success("Categoría actualizada exitosamente");
       } else {
         await api.post("/categories", {
           name: name.trim(),
           description: description.trim() || null,
+          show_in_pos: showInPos,
         });
         toast.success("Categoría creada exitosamente");
       }
@@ -146,6 +151,25 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
               maxLength={255}
               className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-xs resize-none"
             />
+          </div>
+
+          {/* Opción Mostrar en Nueva Venta (POS) */}
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+            <label className="flex items-center space-x-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showInPos}
+                onChange={(e) => setShowInPos(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-xs font-bold text-slate-800 flex items-center">
+                <ShoppingCart className="w-3.5 h-3.5 text-blue-600 mr-1.5" />
+                Mostrar en Nueva Venta (POS)
+              </span>
+            </label>
+            <p className="text-[11px] text-slate-500 pl-6 leading-tight">
+              Habilita que los productos de esta categoría se puedan seleccionar y vender directamente en la pantalla de Nueva Venta (POS). Desmarque esta opción para categorías internas como "Insumos" o "Sub-ensambles".
+            </p>
           </div>
 
           {/* Botones de Acción */}
