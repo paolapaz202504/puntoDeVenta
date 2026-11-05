@@ -12,16 +12,66 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.4.4";
+export const CURRENT_VERSION = "v1.5.0";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.5.0",
+    date: "2026-11-05",
+    title: "Módulo Integral de Compras, Entradas de Almacén y Gestión de Pagos",
+    summary:
+      "Lanzamiento del módulo operativo de entradas de mercadería y compras a proveedores. Incorpora creación rápida de proveedores 'al vuelo', categorización de entradas (Compra, Donación, Ajuste), selección de presentaciones con factor de conversión, recálculo automático de Costo Promedio Ponderado, pagos al contado y a crédito con captura bancaria, y control de Cuentas por Pagar con abonos parciales y liquidación total.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Formulario Integral de Entradas y Compras (StockEntryModal): Registro completo de recepciones con selección de proveedor, fecha, factura, detalle dinámico de productos, cálculo de totales y condición de pago.",
+      },
+      {
+        type: "feature",
+        description:
+          "Creación Rápida de Proveedores (QuickSupplierModal): Registro exprés de proveedores directamente desde el formulario de compras solicitando únicamente el nombre obligatorio sin recargar la página ni perder ítems agregados.",
+      },
+      {
+        type: "feature",
+        description:
+          "Tipos de Entrada Diferenciados: Soporte para 'Compra' (genera compromiso financiero y ajuste de costos), 'Donación' (ingreso de stock sin deuda financiera) y 'Ajuste / Otro' (sobrantes, mermas inversas o traslados).",
+      },
+      {
+        type: "feature",
+        description:
+          "Gestión Financiera de Pagos (Contado vs Crédito): Registro de pagos al contado en Efectivo o Cheque/Depósito/Transferencia con banco, fecha y número de comprobante; o registro a crédito en estado PENDIENTE con fecha de vencimiento.",
+      },
+      {
+        type: "feature",
+        description:
+          "Control de Cuentas por Pagar y Abonos (PaymentModal): Acción para registrar abonos parciales o liquidación total con 1 solo clic en compras a crédito, con desglose bancario y actualización reactiva de saldos.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Recálculo Automático de Costo Promedio Ponderado (CPP): Actualización transparente y atómica del costo unitario del producto en base al stock anterior y el nuevo lote recibido.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Modal de Detalle Completo (StockEntryDetailModal): Visualización estructurada de productos recibidos, factores de conversión aplicados e historial cronológico de pagos y abonos bancarios.",
+      },
+      {
+        type: "cloud",
+        description:
+          "Sincronización Dual de Persistencia: Creación y migración de tablas 'stock_entries', 'stock_entry_items' y 'purchase_payments' con campos de auditoría en los clústeres TiDB Cloud de desarrollo ('refresqueriadbdev') y producción ('refresqueriadbprod').",
+      },
+    ],
+  },
   {
     version: "v1.4.4",
     date: "2026-11-05",
     title: "Contenedores Oficiales de Refrescos y Costeo por Vaso/Copa (12 oz)",
     summary:
       "Calibración precisa de los tres tamaños oficiales de contenedores para refrescos naturales (Pequeña 5.25 L = 15 vasos, Mediana 8.05 L = 23 vasos, Grande 12.60 L = 36 vasos de 12 oz / 350 ml). Mantenimiento de recetas base por litro con cálculo en tiempo real del costo por vaso o copa servido.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",

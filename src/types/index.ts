@@ -265,6 +265,68 @@ export interface Product {
   updated_by?: string | null;
 }
 
+export interface PurchasePayment {
+  id: string;
+  entry_id: string;
+  payment_date: string;
+  amount: number;
+  payment_method: "EFECTIVO" | "CHEQUE" | "DEPOSITO" | "TRANSFERENCIA";
+  bank_name?: string | null;
+  document_number?: string | null;
+  document_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+  created_by?: string | null;
+}
+
+export interface StockEntryItem {
+  id: string;
+  entry_id: string;
+  product_id: string;
+  presentation_name?: string | null;
+  quantity: number;
+  conversion_factor: number;
+  base_quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  product?: {
+    id: string;
+    code: string;
+    name: string;
+    base_unit?: {
+      name: string;
+      symbol: string;
+    };
+  };
+}
+
+export interface StockEntry {
+  id: string;
+  entry_number: string;
+  supplier_id?: string | null;
+  entry_type: "COMPRA" | "DONACION" | "AJUSTE";
+  entry_date: string;
+  invoice_number?: string | null;
+  payment_type: "CONTADO" | "CREDITO" | "NO_APLICA";
+  payment_status: "PAGADA" | "PENDIENTE" | "PARCIAL" | "NO_APLICA";
+  total_cost: number;
+  paid_amount: number;
+  balance_amount: number;
+  due_date?: string | null;
+  notes?: string | null;
+  supplier?: {
+    id: string;
+    name: string;
+    contact_name?: string | null;
+    phone?: string | null;
+    category: string;
+  } | null;
+  items?: StockEntryItem[];
+  payments?: PurchasePayment[];
+  created_at: string;
+  created_by?: string | null;
+}
+
 export interface AuthState {
   token: string | null;
   user: {
