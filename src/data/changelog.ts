@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.4.3";
+export const CURRENT_VERSION = "v1.4.4";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.4.4",
+    date: "2026-11-05",
+    title: "Contenedores Oficiales de Refrescos y Costeo por Vaso/Copa (12 oz)",
+    summary:
+      "Calibración precisa de los tres tamaños oficiales de contenedores para refrescos naturales (Pequeña 5.25 L = 15 vasos, Mediana 8.05 L = 23 vasos, Grande 12.60 L = 36 vasos de 12 oz / 350 ml). Mantenimiento de recetas base por litro con cálculo en tiempo real del costo por vaso o copa servido.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Tarjetas de Contenedores Oficiales en ProductionModal: Selección en 1 clic entre Pequeña (5.25 L / 15 vasos), Mediana (8.05 L / 23 vasos) y Grande (12.60 L / 36 vasos), con opción para volúmenes personalizados.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Cálculo de Costo Unitario por Vaso/Copa: Visualización automática del costo de preparación del contenedor y desglose estimado por porción de 12 oz (350 ml) servida al cliente.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Escalado Exacto de Recetas Base por Litro: Preservación de la formulación estándar por 1 Litro (1,000 ml) con factores automáticos x5.25, x8.05 y x12.60 para descontar insumos e incrementar el stock en mililitros.",
+      },
+    ],
+  },
   {
     version: "v1.4.3",
     date: "2026-11-05",
     title: "Enrutamiento Estricto DEV/PROD y Depuración de Bases de Datos Test",
     summary:
       "Aislamiento y enrutamiento formal de bases de datos: DEV apunta estrictamente a 'refresqueriadbdev' y PROD a 'refresqueriadbprod'. Eliminación segura de las bases de datos temporales 'test' en ambos clústeres TiDB Cloud sin pérdida de datos, y migración integral garantizando 83 productos y 29 recetas sincronizadas.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "cloud",

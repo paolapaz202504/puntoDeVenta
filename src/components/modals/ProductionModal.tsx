@@ -19,6 +19,37 @@ interface ProductionModalProps {
   initialRecipeId?: string | null;
 }
 
+// Tamaños oficiales de contenedores para Refrescos Naturales (porción 12 oz = 350 ml)
+const OFFICIAL_CONTAINERS = [
+  {
+    id: "pequena",
+    name: "Pequeña",
+    liters: 5.25,
+    ml: 5250,
+    glasses: 15,
+    badge: "15 Vasos / Copas",
+    description: "15 porciones de 12 oz (350 ml)",
+  },
+  {
+    id: "mediana",
+    name: "Mediana",
+    liters: 8.05,
+    ml: 8050,
+    glasses: 23,
+    badge: "23 Vasos / Copas",
+    description: "23 porciones de 12 oz (350 ml)",
+  },
+  {
+    id: "grande",
+    name: "Grande",
+    liters: 12.60,
+    ml: 12600,
+    glasses: 36,
+    badge: "36 Vasos / Copas",
+    description: "36 porciones de 12 oz (350 ml)",
+  },
+];
+
 export const ProductionModal: React.FC<ProductionModalProps> = ({
   isOpen,
   onClose,
@@ -28,7 +59,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [containerCapacity, setContainerCapacity] = useState<number>(5); // 5 Litros por defecto
+  const [containerCapacity, setContainerCapacity] = useState<number>(5.25); // 5.25 Litros (Pequeña - 15 vasos) por defecto
   const [poundsMultiplier, setPoundsMultiplier] = useState<number>(5); // 5 Libras por defecto
   const [notes, setNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -75,7 +106,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
     if (found) {
       setSelectedRecipe(found);
       if (found.recipe_type === "BATCH_SCALABLE") {
-        setContainerCapacity(5); // 5L estándar
+        setContainerCapacity(5.25); // Contenedor Pequeña (5.25 L = 15 vasos de 12 oz) por defecto
       } else {
         setPoundsMultiplier(5); // 5 LB estándar
       }
@@ -86,7 +117,19 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
 
   const isBeverage = selectedRecipe?.recipe_type === "BATCH_SCALABLE";
 
-  // Multiplicador efectivo
+  // Identificar si corresponde a uno de los contenedores oficiales
+  const matchingContainer = isBeverage
+    ? OFFICIAL_CONTAINERS.find((c) => Math.abs(c.liters - containerCapacity) < 0.01)
+    : null;
+
+  // Cálculo de vasos/copas estimados (350 ml / 12 oz por servicio)
+  const estimatedGlasses = isBeverage
+    ? matchingContainer
+      ? matchingContainer.glasses
+      : Math.floor((containerCapacity * 1000) / 350)
+    : null;
+
+  // Multiplicador efectivo contra la receta base (base_yield = 1,000 ML = 1 Litro)
   const effectiveMultiplier = isBeverage
     ? containerCapacity / (Number(selectedRecipe?.base_yield || 1000) / 1000)
     : poundsMultiplier;
@@ -96,11 +139,27 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
     ? containerCapacity * 1000 // en ML
     : poundsMultiplier * Number(selectedRecipe?.base_yield || 1); // en LB
 
+  // Costo total estimado del lote elaborado
+  const batchTotalEstimatedCost = (selectedRecipe?.items || []).reduce((acc, item) => {
+    const cost = Number(item.ingredient?.current_cost || 0);
+    return acc + cost * (Number(item.quantity) * effectiveMultiplier);
+  }, 0);
+
+  // Costo estimado por vaso / copa servida
+  const estimatedCostPerGlass =
+    isBeverage && estimatedGlasses && estimatedGlasses > 0
+      ? batchTotalEstimatedCost / estimatedGlasses
+      : 0;
+
   const handleConfirm = async () => {
     if (!selectedRecipe) return;
 
     setLoading(true);
     try {
+      const containerDescription = matchingContainer
+        ? `Contenedor ${matchingContainer.name} (${matchingContainer.liters}L / ${matchingContainer.glasses} vasos de 12 oz)`
+        : `Contenedor personalizado de ${containerCapacity}L (${estimatedGlasses} vasos de 12 oz)`;
+
       const payload = {
         recipe_id: selectedRecipe.id,
         container_capacity_liters: isBeverage ? containerCapacity : null,
@@ -108,14 +167,14 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
         notes:
           notes ||
           (isBeverage
-            ? `Cubeta de ${containerCapacity} Litros elaborada`
+            ? `${containerDescription} elaborado`
             : `Tanda de ${poundsMultiplier} Libras preparada`),
       };
 
       await api.post("/production/batches", payload);
       toast.success(
         isBeverage
-          ? `¡Cubeta de ${containerCapacity}L de ${selectedRecipe.product?.name} ingresada exitosamente!`
+          ? `¡${containerDescription} de ${selectedRecipe.product?.name} ingresado exitosamente!`
           : `¡${poundsMultiplier} Libras de ${selectedRecipe.product?.name} ingresadas a cocina!`
       );
       onSuccess();
@@ -214,7 +273,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                         {isBeverage ? (
                           <>
                             <Droplets className="w-4 h-4 mr-1.5 text-blue-600" />
-                            2. Capacidad de la Cubeta Utilizada (1 a 10 Litros)
+                            2. Tamaño del Contenedor de Despacho
                           </>
                         ) : (
                           <>
@@ -225,7 +284,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {isBeverage
-                          ? "Seleccione el tamaño real de la cubeta para escalar los insumos"
+                          ? "Seleccione el contenedor donde se almacena el refresco (350 ml por porción)"
                           : "Seleccione cuántas libras de relleno cocinó"}
                       </p>
                     </div>
@@ -234,46 +293,92 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                       <span className="text-xs text-slate-400 font-bold uppercase block">
                         Rendimiento Final
                       </span>
-                      <span className="text-base font-black text-blue-700">
+                      <span className="text-base font-black text-blue-700 block">
                         {isBeverage
                           ? `${totalProduced.toLocaleString()} ML (${containerCapacity}L)`
                           : `${totalProduced} Libras`}
                       </span>
+                      {isBeverage && estimatedGlasses && (
+                        <span className="text-[11px] font-bold text-slate-600 block mt-0.5">
+                          Rinde ~{estimatedGlasses} vasos / copas (12 oz)
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {isBeverage ? (
-                    /* Botones Rápidos de Cubetas: 1L a 10L */
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-5 sm:grid-cols-9 gap-1.5">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((liters) => (
-                          <button
-                            key={liters}
-                            type="button"
-                            onClick={() => setContainerCapacity(liters)}
-                            className={`py-2 px-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                              containerCapacity === liters
-                                ? "bg-blue-600 text-white shadow-xs scale-105"
-                                : "bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
-                            }`}
-                          >
-                            {liters}L
-                          </button>
-                        ))}
+                    /* Selector de los 3 Contenedores Oficiales */
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {OFFICIAL_CONTAINERS.map((cont) => {
+                          const isSelected = Math.abs(containerCapacity - cont.liters) < 0.01;
+                          return (
+                            <button
+                              key={cont.id}
+                              type="button"
+                              onClick={() => setContainerCapacity(cont.liters)}
+                              className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative ${
+                                isSelected
+                                  ? "bg-blue-50/80 border-blue-600 ring-2 ring-blue-600/30 shadow-md"
+                                  : "bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                  <Droplets className="w-3.5 h-3.5 text-blue-600" />
+                                  {cont.name}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                                    isSelected
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-slate-100 text-slate-700"
+                                  }`}
+                                >
+                                  {cont.glasses} Vasos
+                                </span>
+                              </div>
+
+                              <div className="flex items-baseline justify-between mt-1">
+                                <span className="text-sm font-black text-blue-700">
+                                  {cont.liters} Litros
+                                </span>
+                                <span className="text-[11px] font-semibold text-slate-500">
+                                  {cont.ml.toLocaleString()} ml
+                                </span>
+                              </div>
+
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                12 oz (350 ml) por vaso o copa
+                              </p>
+
+                              {isSelected && (
+                                <div className="absolute top-2 right-2">
+                                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      <div className="flex items-center justify-end space-x-2 pt-1 text-xs">
-                        <span className="text-slate-500">¿Otra capacidad?</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0.5"
-                          max="50"
-                          value={containerCapacity}
-                          onChange={(e) => setContainerCapacity(Number(e.target.value) || 1)}
-                          className="w-20 px-2 py-1 text-xs border border-slate-300 rounded-lg text-center font-bold text-slate-800"
-                        />
-                        <span className="font-bold text-slate-700">Litros</span>
+                      {/* Opción para otro volumen personalizado si aplica */}
+                      <div className="flex items-center justify-between pt-2 px-1 text-xs border-t border-slate-200/80">
+                        <span className="text-slate-500 font-medium">
+                          ¿Utilizó un contenedor con otra capacidad?
+                        </span>
+                        <div className="flex items-center space-x-1.5">
+                          <input
+                            type="number"
+                            step="0.05"
+                            min="0.5"
+                            max="50"
+                            value={containerCapacity}
+                            onChange={(e) => setContainerCapacity(Number(e.target.value) || 1)}
+                            className="w-20 px-2 py-1 text-xs border border-slate-300 rounded-lg text-center font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                          />
+                          <span className="font-bold text-slate-700">Litros</span>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -314,6 +419,24 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
 
                   {/* Resumen de Insumos que se descontarán automáticamente */}
                   <div className="pt-2 border-t border-slate-200">
+                    {/* Indicador de Costo Estimado y Costo por Vaso */}
+                    <div className="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 mb-3">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Costo Estimado de Producción:</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-black text-sm text-blue-800">
+                          Q {batchTotalEstimatedCost.toFixed(2)}
+                        </span>
+                        {isBeverage && estimatedCostPerGlass > 0 && (
+                          <span className="text-[10px] text-blue-600 font-bold block">
+                            ~Q {estimatedCostPerGlass.toFixed(2)} por vaso o copa (12 oz)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
                     <p className="text-xs font-bold text-slate-600 uppercase mb-2 flex items-center justify-between">
                       <span>Materias Primas Requeridas (Se descontarán del stock):</span>
                       <span className="text-emerald-700 font-semibold normal-case">
