@@ -1,6 +1,7 @@
 export interface Role {
   id: string;
   name: string;
+  default_path?: string;
   created_at: string;
   updated_at: string;
   created_by?: string | null;
@@ -33,6 +34,7 @@ export interface User {
   roles: Array<{
     id: string;
     name: string;
+    default_path?: string;
   }>;
 }
 
@@ -338,6 +340,7 @@ export interface AuthState {
     roles: Array<{
       id: string;
       name: string;
+      default_path?: string;
     }>;
     permissions: string[];
   } | null;
@@ -346,4 +349,145 @@ export interface AuthState {
   logout: () => void;
   updateUser: (user: Partial<NonNullable<AuthState["user"]>>) => void;
   hasPermission: (slug: string) => boolean;
+}
+
+export interface Expense {
+  id: string;
+  expense_number: string;
+  expense_date: string;
+  category:
+    | "PERSONAL_PLANILLA"
+    | "ENERGIA_ELECTRICA"
+    | "AGUA_POTABLE"
+    | "GAS_PROPANO"
+    | "IMPUESTOS_SAT"
+    | "ALQUILER"
+    | "MANTENIMIENTO"
+    | "DESECHABLES_LIMPIEZA"
+    | "OTROS";
+  description: string;
+  amount: number;
+  payment_method: "EFECTIVO" | "CHEQUE" | "DEPOSITO" | "TRANSFERENCIA";
+  bank_name?: string | null;
+  document_number?: string | null;
+  document_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+  created_by?: string | null;
+}
+
+export interface SaleItem {
+  id: string;
+  sale_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  unit_cost: number;
+  product?: {
+    id: string;
+    code: string;
+    name: string;
+    base_unit?: { symbol: string };
+  };
+}
+
+export interface Sale {
+  id: string;
+  sale_number: string;
+  sale_date: string;
+  customer_name: string;
+  table_id?: string | null;
+  sale_type: "DIRECTA" | "MESA" | "LLEVAR" | "DELIVERY";
+  payment_method: "EFECTIVO" | "TARJETA" | "TRANSFERENCIA";
+  bank_name?: string | null;
+  document_number?: string | null;
+  subtotal: number;
+  total: number;
+  cash_received?: number | null;
+  change_returned?: number | null;
+  status: "COMPLETADA" | "ANULADA";
+  notes?: string | null;
+  table?: { id: string; name: string } | null;
+  items?: SaleItem[];
+  created_at: string;
+  created_by?: string | null;
+}
+
+export interface OutflowItem {
+  id: string;
+  outflow_type: "COMPRA" | "GASTO";
+  reference_number: string;
+  date: string;
+  category: string;
+  description: string;
+  amount: number;
+  payment_method: string;
+  bank_name?: string | null;
+  document_number?: string | null;
+  document_date?: string | null;
+  notes?: string | null;
+}
+
+export interface FinancialFlowSummary {
+  summary: {
+    totalInflows: number;
+    totalOutflows: number;
+    purchasesOutflows: number;
+    expensesOutflows: number;
+    netCashFlow: number;
+    salesCount: number;
+    purchasesCount: number;
+    expensesCount: number;
+  };
+  inflowsByMethod: Record<string, number>;
+  outflowsByMethod: Record<string, number>;
+  expensesByCategory: Record<string, number>;
+}
+
+export interface DashboardMetrics {
+  today: {
+    salesTotal: number;
+    salesCount: number;
+    outflowsTotal: number;
+    netBalance: number;
+  };
+  month: {
+    salesTotal: number;
+    purchasesTotal: number;
+    expensesTotal: number;
+    outflowsTotal: number;
+    netProfit: number;
+  };
+  criticalInventory: {
+    totalCritical: number;
+    products: Array<{
+      id: string;
+      code: string;
+      name: string;
+      current_stock: number;
+      min_stock_alert: number;
+      unit_symbol: string;
+    }>;
+  };
+  chartData: Array<{
+    date: string;
+    sales: number;
+    outflows: number;
+  }>;
+  topProducts: Array<{
+    name: string;
+    quantity: number;
+    revenue: number;
+  }>;
+  recentSales: Array<{
+    id: string;
+    sale_number: string;
+    customer_name: string;
+    sale_date: string;
+    total: number;
+    payment_method: string;
+    status: string;
+  }>;
 }

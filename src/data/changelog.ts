@@ -12,16 +12,66 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.5.1";
+export const CURRENT_VERSION = "v1.6.0";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.6.0",
+    date: "2026-11-05",
+    title: "Módulo Financiero, Punto de Venta (POS), Dashboard Administrativo y Rutas por Rol",
+    summary:
+      "Gran actualización con el lanzamiento del Módulo Financiero (Gastos Operativos, Egresos Unificados y Flujo de Caja), Sistema de Punto de Venta (POS) ágil con control estricto de existencias, Tablero Administrativo con gráficos y métricas para Administradores, navegación y páginas de inicio configurables por rol con restricción exclusiva para Cajero, y desacoplamiento total de proveedores en el catálogo de productos.",
+    isLatest: true,
+    changes: [
+      {
+        type: "feature",
+        description:
+          "Módulo Financiero Completo: Registro y gestión de Gastos Operativos (Personal/Planilla, Energía Eléctrica, Agua, Gas Propano, Impuestos SAT, Alquiler, Mantenimiento y Desechables) con comprobantes bancarios y observaciones.",
+      },
+      {
+        type: "feature",
+        description:
+          "Pantalla de Egresos de Dinero: Vista unificada que consolida todas las salidas monetarias del negocio por concepto de compras de mercadería (pagos contado y abonos a crédito) y gastos de operación.",
+      },
+      {
+        type: "feature",
+        description:
+          "Flujo de Caja y Rendimiento: Balance financiero en tiempo real comparando ingresos por ventas vs salidas por compras y gastos, con desglose porcentual por método de pago y categoría de gasto.",
+      },
+      {
+        type: "feature",
+        description:
+          "Módulo de Ventas y Punto de Venta (POS): Pantalla ágil y táctil (/pos) para despacho de productos autorizados para venta directa, comanda con modificadores de cantidad, cálculo instantáneo de cambio en efectivo y actualización automática de existencias.",
+      },
+      {
+        type: "feature",
+        description:
+          "Historial de Ventas y Comandas: Registro con filtros por tipo, fecha y método de pago, modal de inspección de consumos y anulación de ventas con restitución automática de inventario.",
+      },
+      {
+        type: "feature",
+        description:
+          "Tablero Administrativo (Dashboard General): Pantalla de inicio para el Administrador con KPIs de ventas y egresos de hoy y del mes, gráfico comparativo de 7 días, alertas de inventario crítico y ranking de productos más vendidos.",
+      },
+      {
+        type: "feature",
+        description:
+          "Página de Inicio por Rol y Restricción de Cajero: Campo 'default_path' configurable en el catálogo de roles. El rol Cajero accede directamente al POS y queda restringido de acceder al listado de ventas o al dashboard administrativo.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Desacoplamiento Proveedor-Producto: Eliminación definitiva de 'Proveedor Principal' en Catálogo de Productos para permitir compras dinámicas desde múltiples proveedores.",
+      },
+    ],
+  },
   {
     version: "v1.5.1",
     date: "2026-11-05",
     title: "Paginación en Artículos, Formato Fecha/Hora y Control Preciso de Abonos",
     summary:
       "Optimizaciones en el módulo de compras: paginación automática en la lista de mercadería recibida al superar 10 artículos, ampliación de ancho en el modal a 'max-w-5xl', visualización estricta de fecha y hora en formato 'dd/mm/yyyy hh:mm', activación de filtros en listado exclusivamente mediante el botón 'Actualizar Lista', y corrección de abonos parciales en PaymentModal.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "improvement",

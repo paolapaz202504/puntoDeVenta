@@ -18,6 +18,7 @@ export const RoleModal: React.FC<RoleModalProps> = ({
   roleToEdit,
 }) => {
   const [name, setName] = useState("");
+  const [defaultPath, setDefaultPath] = useState("/");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -26,8 +27,10 @@ export const RoleModal: React.FC<RoleModalProps> = ({
   useEffect(() => {
     if (roleToEdit) {
       setName(roleToEdit.name);
+      setDefaultPath(roleToEdit.default_path || "/");
     } else {
       setName("");
+      setDefaultPath("/");
     }
     setErrorMsg("");
   }, [roleToEdit, isOpen]);
@@ -65,10 +68,10 @@ export const RoleModal: React.FC<RoleModalProps> = ({
 
     try {
       if (roleToEdit) {
-        await api.put(`/roles/${roleToEdit.id}`, { name: name.trim() });
+        await api.put(`/roles/${roleToEdit.id}`, { name: name.trim(), default_path: defaultPath });
         toast.success("Rol actualizado exitosamente");
       } else {
-        await api.post("/roles", { name: name.trim() });
+        await api.post("/roles", { name: name.trim(), default_path: defaultPath });
         toast.success("Rol creado exitosamente");
       }
       onSaved();
@@ -128,6 +131,31 @@ export const RoleModal: React.FC<RoleModalProps> = ({
                 Entre 3 y 50 caracteres alfanuméricos, acepta acentos y espacios.
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-800 mb-1">
+              Página Principal al Iniciar Sesión (Ruta por Defecto)
+            </label>
+            <select
+              value={defaultPath}
+              onChange={(e) => setDefaultPath(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            >
+              <option value="/">Tablero Administrativo (Dashboard General - /)</option>
+              <option value="/pos">Punto de Venta (Ventas Rápidas - /pos)</option>
+              <option value="/ventas">Listado de Ventas (/ventas)</option>
+              <option value="/preparaciones">Cocina y Barra (Elaboraciones - /preparaciones)</option>
+              <option value="/mesas">Mesas y Espacios (/mesas)</option>
+              <option value="/entradas">Entradas y Compras (/entradas)</option>
+              <option value="/finanzas/egresos">Módulo Financiero / Egresos (/finanzas/egresos)</option>
+              <option value="/finanzas/flujo">Módulo Financiero / Flujo de Caja (/finanzas/flujo)</option>
+              <option value="/gastos">Gastos Operativos (/gastos)</option>
+              <option value="/productos">Catálogo de Productos (/productos)</option>
+            </select>
+            <p className="mt-1.5 text-xs text-slate-500">
+              Define la pantalla a la cual será redirigido el usuario con este rol tras iniciar sesión.
+            </p>
           </div>
 
           {/* Botones */}

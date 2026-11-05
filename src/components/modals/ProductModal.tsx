@@ -14,7 +14,7 @@ import {
   Image as ImageIcon,
   Maximize2,
 } from "lucide-react";
-import { Product, Category, MeasurementUnit, ProductPurchasePresentation, Brand, Supplier } from "../../types";
+import { Product, Category, MeasurementUnit, ProductPurchasePresentation, Brand } from "../../types";
 import { ProductImageModal } from "./ProductImageModal";
 
 interface ProductModalProps {
@@ -35,7 +35,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [brandId, setBrandId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [baseUnitId, setBaseUnitId] = useState("");
-  const [supplierId, setSupplierId] = useState("");
   const [productType, setProductType] = useState<
     "DIRECT_SALE" | "MANUFACTURED" | "RAW_MATERIAL" | "SUB_RECIPE" | "ON_DEMAND"
   >("DIRECT_SALE");
@@ -52,7 +51,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [units, setUnits] = useState<MeasurementUnit[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -62,23 +60,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       const loadOptions = async () => {
         setLoadingData(true);
         try {
-          const [catRes, unitRes, brandRes, suppRes] = await Promise.all([
+          const [catRes, unitRes, brandRes] = await Promise.all([
             api.get("/categories", { params: { limit: 100, sortBy: "name", order: "asc" } }),
             api.get("/units", { params: { limit: 100, sortBy: "name", order: "asc" } }),
             api.get("/brands", { params: { limit: 100, sortBy: "name", order: "asc" } }),
-            api.get("/suppliers", { params: { limit: 100, sortBy: "name", order: "asc" } }),
           ]);
           setCategories(catRes.data.items || []);
           setUnits(unitRes.data.items || []);
           setBrands(brandRes.data.items || []);
-          setSuppliers(suppRes.data.items || []);
 
           if (!productToEdit && unitRes.data.items?.length > 0) {
             const und = unitRes.data.items.find((u: MeasurementUnit) => u.symbol === "UND");
             if (und) setBaseUnitId(und.id);
           }
         } catch (error) {
-          toast.error("Error al cargar categorías, marcas, unidades y proveedores");
+          toast.error("Error al cargar categorías, marcas y unidades");
         } finally {
           setLoadingData(false);
         }
@@ -94,7 +90,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setBrandId(productToEdit.brand_id || "");
       setCategoryId(productToEdit.category_id);
       setBaseUnitId(productToEdit.base_unit_id);
-      setSupplierId(productToEdit.supplier_id || "");
       setProductType(productToEdit.product_type || "DIRECT_SALE");
       setSalePrice(productToEdit.sale_price);
       setCurrentCost(productToEdit.current_cost);
@@ -108,7 +103,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setName("");
       setBrandId("");
       setCategoryId("");
-      setSupplierId("");
       setProductType("DIRECT_SALE");
       setSalePrice(5.00);
       setCurrentCost(0.00);
@@ -200,7 +194,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       brand_id: brandId || null,
       category_id: categoryId,
       base_unit_id: baseUnitId,
-      supplier_id: supplierId || null,
+      supplier_id: null,
       product_type: productType,
       sale_price: Number(salePrice),
       current_cost: Number(currentCost),
@@ -376,42 +370,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           </div>
 
-          {/* Fila 2.5: Tipo de Producto y Proveedor */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Naturaleza / Tipo de Producto <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={productType}
-                onChange={(e) => setProductType(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-xs"
-              >
-                <option value="DIRECT_SALE">Venta Directa (Gaseosas, abarrotes)</option>
-                <option value="MANUFACTURED">Refresco Natural (Cubetas 1 a 10L)</option>
-                <option value="ON_DEMAND">Preparado al Momento (Licuados, Panes, Tostadas)</option>
-                <option value="SUB_RECIPE">Sub-ensamble de Cocina (Relleno por Libra)</option>
-                <option value="RAW_MATERIAL">Materia Prima / Insumo Comprado</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Proveedor Principal (Para Materias Primas)
-              </label>
-              <select
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                disabled={loadingData}
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-xs"
-              >
-                <option value="">-- Sin Proveedor / Seleccionar --</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.category})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Fila 2.5: Naturaleza / Tipo de Producto */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Naturaleza / Tipo de Producto <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={productType}
+              onChange={(e) => setProductType(e.target.value as any)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-xs"
+            >
+              <option value="DIRECT_SALE">Venta Directa (Gaseosas, abarrotes)</option>
+              <option value="MANUFACTURED">Refresco Natural (Cubetas 1 a 10L)</option>
+              <option value="ON_DEMAND">Preparado al Momento (Licuados, Panes, Tostadas)</option>
+              <option value="SUB_RECIPE">Sub-ensamble de Cocina (Relleno por Libra)</option>
+              <option value="RAW_MATERIAL">Materia Prima / Insumo Comprado</option>
+            </select>
           </div>
 
           {/* Fila 3: Precios y Costos */}

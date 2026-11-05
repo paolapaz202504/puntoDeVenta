@@ -182,6 +182,9 @@ export const RolesList: React.FC = () => {
                     Nombre del Rol
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Ruta Principal
+                  </th>
+                  <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Permisos Asignados
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -212,6 +215,11 @@ export const RolesList: React.FC = () => {
                           </span>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold font-mono bg-blue-50 text-blue-700 border border-blue-200">
+                        {role.default_path || "/"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
