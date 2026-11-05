@@ -556,26 +556,22 @@ export const PosSalesPage: React.FC = () => {
                     No hay mesas o espacios configurados
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                     {tablesByArea.map((group, idx) => {
                       const palette = AREA_PALETTES[idx % AREA_PALETTES.length];
                       return (
                         <div
                           key={group.areaId}
-                          className={`p-2 rounded-xl border ${palette.containerBg} transition-all`}
+                          className={`p-1.5 rounded-lg border ${palette.containerBg} transition-all flex items-center flex-wrap gap-1.5`}
                         >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span
-                              className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border ${palette.areaBadge}`}
-                            >
-                              {group.areaName}
-                            </span>
-                            <span className="text-[10px] font-semibold text-slate-600">
-                              {group.tables.length} {group.tables.length === 1 ? "mesa" : "mesas"}
-                            </span>
-                          </div>
+                          <span
+                            className={`text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border shrink-0 ${palette.areaBadge}`}
+                            title={`${group.tables.length} ${group.tables.length === 1 ? "mesa/espacio" : "mesas/espacios"}`}
+                          >
+                            {group.areaName}:
+                          </span>
 
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap items-center gap-1 flex-1">
                             {group.tables.map((tbl) => {
                               const isSelected = selectedTableId === tbl.id;
                               return (
@@ -583,14 +579,14 @@ export const PosSalesPage: React.FC = () => {
                                   key={tbl.id}
                                   type="button"
                                   onClick={() => setSelectedTableId(tbl.id)}
-                                  className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border ${
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold transition-all cursor-pointer border ${
                                     isSelected
                                       ? palette.tagSelected
                                       : palette.tagDefault
                                   }`}
                                   title={`Seleccionar ${tbl.name} (${group.areaName})`}
                                 >
-                                  {isSelected && <Check className="w-3 h-3 mr-1 shrink-0" />}
+                                  {isSelected && <Check className="w-2.5 h-2.5 mr-1 shrink-0" />}
                                   <span>{tbl.name}</span>
                                 </button>
                               );

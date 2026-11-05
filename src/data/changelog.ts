@@ -12,16 +12,36 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.7.1";
+export const CURRENT_VERSION = "v1.7.2";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.7.2",
+    date: "2026-11-05",
+    title: "Optimización de Espacio en Comanda POS: Mesas y Título de Área en Fila Única",
+    summary:
+      "Aprovechamiento ergonómico del espacio en el panel de comanda: el título distintivo de cada Área y sus respectivas mesas o espacios de trabajo se integran en una sola fila continua con tipografía compacta, eliminando filas redundantes y maximizando el área visible para los productos del carrito.",
+    isLatest: true,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Integración en Misma Fila: El badge de área y los tags de mesas se ubican en la misma línea de forma contigua, evitando saltos de línea innecesarios por cada área.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Tipografía y Padding Compactos: Reducción del tamaño de texto y padding de los tags de mesas (text-[10.5px] px-2 py-0.5) para una visualización compacta y ágil de todos los espacios.",
+      },
+    ],
+  },
   {
     version: "v1.7.1",
     date: "2026-11-05",
     title: "Selección Visual de Mesas y Espacios por Área con Tags en Comanda POS",
     summary:
       "Modernización de la Comanda en el Punto de Venta (POS): al seleccionar tipo de venta 'Mesa', se reemplaza el desplegable select por una fila dedicada para cada Área con paletas de colores diferenciadas y botones tipo tag interactivos para cada mesa o espacio de trabajo, permitiendo visualizar y seleccionar con un solo clic.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",
