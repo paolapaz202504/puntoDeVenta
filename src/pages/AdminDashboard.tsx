@@ -476,13 +476,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
           <div className="mt-3 sm:mt-0 flex items-center space-x-2">
             <button
-              onClick={() => onNavigate("pos")}
-              className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
-            >
-              <ShoppingCart className="w-4 h-4 mr-1.5" />
-              Nueva Venta (POS)
-            </button>
-            <button
               onClick={() => fetchMetrics(startDateInput, endDateInput)}
               className="p-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl transition-all cursor-pointer"
               title="Actualizar datos"

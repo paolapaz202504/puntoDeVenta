@@ -12,16 +12,31 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.6.2";
+export const CURRENT_VERSION = "v1.6.3";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.6.3",
+    date: "2026-11-05",
+    title: "Optimización de UI: Retiro de Botón 'Nueva Venta (POS)' en Dashboard",
+    summary:
+      "Alineación visual del Tablero Administrativo retirando el botón de acción directa 'Nueva Venta (POS)' en la cabecera del dashboard, manteniendo exclusivamente el botón de actualización de datos y preservando el acceso a ventas desde el menú lateral y la navegación de roles.",
+    isLatest: true,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Limpieza en Cabecera del Dashboard: Se retiró el botón 'Nueva Venta (POS)' para enfocar el tablero exclusivamente en visualización analítica, métricas de desempeño y auditoría financiera.",
+      },
+    ],
+  },
   {
     version: "v1.6.2",
     date: "2026-11-05",
     title: "Inclusión de Granularidad por Mes en Todos los Reportes Dinámicos del Dashboard",
     summary:
       "Ampliación de los selectores de agrupación temporal en todos los gráficos de barras del Tablero Administrativo para soportar 'Mes' junto a Hora, Día, Semana del Mes y Año (Hora, Día, Sem, Mes, Año) en Ventas, Categorías Vendidas, Compras, Categorías Compradas, Gastos de Operación, Categorías de Gastos y Productos Más Vendidos.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "improvement",
