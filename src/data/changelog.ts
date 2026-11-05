@@ -12,16 +12,36 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.6.1";
+export const CURRENT_VERSION = "v1.6.2";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.6.2",
+    date: "2026-11-05",
+    title: "Inclusión de Granularidad por Mes en Todos los Reportes Dinámicos del Dashboard",
+    summary:
+      "Ampliación de los selectores de agrupación temporal en todos los gráficos de barras del Tablero Administrativo para soportar 'Mes' junto a Hora, Día, Semana del Mes y Año (Hora, Día, Sem, Mes, Año) en Ventas, Categorías Vendidas, Compras, Categorías Compradas, Gastos de Operación, Categorías de Gastos y Productos Más Vendidos.",
+    isLatest: true,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Granularidad 'Mes' en 7 Reportes Dinámicos: Se integró el botón y la lógica de agrupación mensual ('Mes', e.g. Ene 2026, Feb 2026) en Gráfico de Ventas, Categorías Vendidas, Gráfico de Compras, Categorías Compradas, Gastos de Operación, Categorías de Gastos y Productos Más Vendidos.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Desglose Temporal Multidimensional en Categorías y Productos: Al seleccionar agrupaciones temporales (Hora, Día, Semana, Mes, Año), las categorías y los productos más vendidos reflejan la evolución temporal de manera precisa.",
+      },
+    ],
+  },
   {
     version: "v1.6.1",
     date: "2026-11-05",
     title: "Dashboard Avanzado con Filtro de Temporalidad, Gráfico Multi-Líneas y Agrupación Temporal",
     summary:
       "Potenciación del Tablero Administrativo: filtros de fecha dd/mm/yyyy con horarios internos estrictos (00:00:00 a 23:59:59), tags de selección rápida (Hoy, Semana, Mes, Dos Meses), gráfico de líneas diario con los 4 montos (Ventas, Compras, Gastos y Utilidad), y gráficos de barras interactivos con granularidad temporal dinámica (Hora, Día, Semana del Mes, Año) y filtros de categoría para Ventas, Compras, Gastos e Inventario.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",

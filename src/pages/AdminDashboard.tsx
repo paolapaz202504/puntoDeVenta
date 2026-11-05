@@ -20,7 +20,15 @@ interface AdminDashboardProps {
   onNavigate: (tab: any) => void;
 }
 
-type GroupingType = "HORA" | "DIA" | "SEMANA" | "AÑO";
+type GroupingType = "HORA" | "DIA" | "SEMANA" | "MES" | "AÑO";
+
+const GROUPING_OPTIONS: Array<{ id: GroupingType; label: string }> = [
+  { id: "HORA", label: "Hora" },
+  { id: "DIA", label: "Día" },
+  { id: "SEMANA", label: "Sem" },
+  { id: "MES", label: "Mes" },
+  { id: "AÑO", label: "Año" },
+];
 
 // Helper: Formatear Date a dd/mm/yyyy
 function formatDateDDMMYYYY(date: Date): string {
@@ -185,6 +193,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       const label = `Semana ${weekNum}`;
       return { key: `W${weekNum}`, label, order: weekNum };
     }
+    if (grouping === "MES") {
+      const month = d.getMonth();
+      const monthNames = [
+        "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+      ];
+      const key = `${d.getFullYear()}-${String(month + 1).padStart(2, "0")}`;
+      const label = `${monthNames[month]} ${d.getFullYear()}`;
+      return { key, label, order: d.getFullYear() * 100 + (month + 1) };
+    }
     // AÑO
     const y = d.getFullYear();
     return { key: String(y), label: String(y), order: y };
@@ -220,19 +238,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   // 2. Gráfico Categorías Vendidas
   const salesCategoriesChartData = useMemo(() => {
     if (!metrics) return [];
-    const catMap: Record<string, { label: string; value: number }> = {};
-
-    for (const cat of metrics.categories) {
-      catMap[cat.id] = { label: cat.name, value: 0 };
+    const timeKeys = new Set<string>();
+    for (const sale of metrics.sales) {
+      timeKeys.add(getGroupKey(sale.sale_date, salesCatChartGrouping).key);
     }
+    const hasMultipleTimes = timeKeys.size > 1;
+
+    const catMap: Record<string, { label: string; value: number; order: number }> = {};
 
     for (const sale of metrics.sales) {
+      const { key: timeKey, label: timeLabel, order: timeOrder } = getGroupKey(sale.sale_date, salesCatChartGrouping);
+
       for (const item of sale.items) {
-        if (catMap[item.category_id]) {
-          catMap[item.category_id].value += item.subtotal;
-        } else if (item.category_id) {
-          catMap[item.category_id] = { label: item.category_name, value: item.subtotal };
+        const catName = item.category_name || "Sin Categoría";
+        const compositeKey = hasMultipleTimes ? `${item.category_id || catName}__${timeKey}` : (item.category_id || catName);
+        const label = hasMultipleTimes ? `${catName} (${timeLabel})` : catName;
+
+        if (!catMap[compositeKey]) {
+          catMap[compositeKey] = { label, value: 0, order: timeOrder };
         }
+        catMap[compositeKey].value += item.subtotal;
       }
     }
 
@@ -271,19 +296,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   // 4. Gráfico Categorías Compradas
   const purchasesCategoriesChartData = useMemo(() => {
     if (!metrics) return [];
-    const catMap: Record<string, { label: string; value: number }> = {};
-
-    for (const cat of metrics.categories) {
-      catMap[cat.id] = { label: cat.name, value: 0 };
+    const timeKeys = new Set<string>();
+    for (const purchase of metrics.purchases) {
+      timeKeys.add(getGroupKey(purchase.entry_date, purchasesCatChartGrouping).key);
     }
+    const hasMultipleTimes = timeKeys.size > 1;
+
+    const catMap: Record<string, { label: string; value: number; order: number }> = {};
 
     for (const purchase of metrics.purchases) {
+      const { key: timeKey, label: timeLabel, order: timeOrder } = getGroupKey(purchase.entry_date, purchasesCatChartGrouping);
+
       for (const item of purchase.items) {
-        if (catMap[item.category_id]) {
-          catMap[item.category_id].value += item.total_cost;
-        } else if (item.category_id) {
-          catMap[item.category_id] = { label: item.category_name, value: item.total_cost };
+        const catName = item.category_name || "Sin Categoría";
+        const compositeKey = hasMultipleTimes ? `${item.category_id || catName}__${timeKey}` : (item.category_id || catName);
+        const label = hasMultipleTimes ? `${catName} (${timeLabel})` : catName;
+
+        if (!catMap[compositeKey]) {
+          catMap[compositeKey] = { label, value: 0, order: timeOrder };
         }
+        catMap[compositeKey].value += item.total_cost;
       }
     }
 
@@ -313,37 +345,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   // 6. Gráfico Categorías de Gastos de Operación
   const expensesCategoriesChartData = useMemo(() => {
     if (!metrics) return [];
-    const catMap: Record<string, { label: string; value: number }> = {};
+    const timeKeys = new Set<string>();
+    for (const expense of metrics.expenses) {
+      timeKeys.add(getGroupKey(expense.expense_date, expensesCatChartGrouping).key);
+    }
+    const hasMultipleTimes = timeKeys.size > 1;
+
+    const catMap: Record<string, { label: string; value: number; order: number }> = {};
 
     for (const expense of metrics.expenses) {
-      const label = EXPENSE_CATEGORY_LABELS[expense.category] || expense.category;
-      if (!catMap[expense.category]) {
-        catMap[expense.category] = { label, value: 0 };
+      const { key: timeKey, label: timeLabel, order: timeOrder } = getGroupKey(expense.expense_date, expensesCatChartGrouping);
+      const categoryName = EXPENSE_CATEGORY_LABELS[expense.category] || expense.category;
+      const compositeKey = hasMultipleTimes ? `${expense.category}__${timeKey}` : expense.category;
+      const label = hasMultipleTimes ? `${categoryName} (${timeLabel})` : categoryName;
+
+      if (!catMap[compositeKey]) {
+        catMap[compositeKey] = { label, value: 0, order: timeOrder };
       }
-      catMap[expense.category].value += expense.amount;
+      catMap[compositeKey].value += expense.amount;
     }
 
-    return Object.values(catMap).sort((a, b) => b.value - a.value);
+    return Object.values(catMap)
+      .filter((c) => c.value > 0)
+      .sort((a, b) => b.value - a.value);
   }, [metrics, expensesCatChartGrouping]);
 
   // 7. Productos Más Vendidos
   const topProductsChartData = useMemo(() => {
     if (!metrics) return [];
-    const prodMap: Record<string, { label: string; value: number; revenue: number; category_id: string }> = {};
+    const timeKeys = new Set<string>();
+    for (const sale of metrics.sales) {
+      timeKeys.add(getGroupKey(sale.sale_date, inventoryGrouping).key);
+    }
+    const hasMultipleTimes = timeKeys.size > 1;
+
+    const prodMap: Record<string, { label: string; value: number; revenue: number; order: number }> = {};
 
     for (const sale of metrics.sales) {
+      const { key: timeKey, label: timeLabel, order: timeOrder } = getGroupKey(sale.sale_date, inventoryGrouping);
+
       for (const item of sale.items) {
         if (inventoryCategoryFilter === "ALL" || item.category_id === inventoryCategoryFilter) {
-          if (!prodMap[item.product_id]) {
-            prodMap[item.product_id] = {
-              label: item.product_name,
+          const compositeKey = hasMultipleTimes ? `${item.product_id}__${timeKey}` : item.product_id;
+          const label = hasMultipleTimes ? `${item.product_name} (${timeLabel})` : item.product_name;
+
+          if (!prodMap[compositeKey]) {
+            prodMap[compositeKey] = {
+              label,
               value: 0,
               revenue: 0,
-              category_id: item.category_id,
+              order: timeOrder,
             };
           }
-          prodMap[item.product_id].value += item.quantity;
-          prodMap[item.product_id].revenue += item.subtotal;
+          prodMap[compositeKey].value += item.quantity;
+          prodMap[compositeKey].revenue += item.subtotal;
         }
       }
     }
@@ -869,15 +924,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
                     {/* Selector de Agrupación */}
                     <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                      {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                      {GROUPING_OPTIONS.map((g) => (
                         <button
-                          key={g}
-                          onClick={() => setSalesGrouping(g)}
+                          key={g.id}
+                          onClick={() => setSalesGrouping(g.id)}
                           className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                            salesGrouping === g ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                            salesGrouping === g.id ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
                           }`}
                         >
-                          {g === "SEMANA" ? "Sem" : g}
+                          {g.label}
                         </button>
                       ))}
                     </div>
@@ -894,15 +949,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
                   {/* Agrupación temporal */}
                   <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                    {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                    {GROUPING_OPTIONS.map((g) => (
                       <button
-                        key={g}
-                        onClick={() => setSalesCatChartGrouping(g)}
+                        key={g.id}
+                        onClick={() => setSalesCatChartGrouping(g.id)}
                         className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          salesCatChartGrouping === g ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                          salesCatChartGrouping === g.id ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
-                        {g === "SEMANA" ? "Sem" : g}
+                        {g.label}
                       </button>
                     ))}
                   </div>
@@ -950,15 +1005,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </select>
 
                     <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                      {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                      {GROUPING_OPTIONS.map((g) => (
                         <button
-                          key={g}
-                          onClick={() => setPurchasesGrouping(g)}
+                          key={g.id}
+                          onClick={() => setPurchasesGrouping(g.id)}
                           className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                            purchasesGrouping === g ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                            purchasesGrouping === g.id ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
                           }`}
                         >
-                          {g === "SEMANA" ? "Sem" : g}
+                          {g.label}
                         </button>
                       ))}
                     </div>
@@ -974,15 +1029,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   <span className="text-xs font-bold text-slate-700 uppercase">2. Categorías Compradas</span>
 
                   <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                    {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                    {GROUPING_OPTIONS.map((g) => (
                       <button
-                        key={g}
-                        onClick={() => setPurchasesCatChartGrouping(g)}
+                        key={g.id}
+                        onClick={() => setPurchasesCatChartGrouping(g.id)}
                         className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          purchasesCatChartGrouping === g ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                          purchasesCatChartGrouping === g.id ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
-                        {g === "SEMANA" ? "Sem" : g}
+                        {g.label}
                       </button>
                     ))}
                   </div>
@@ -1030,15 +1085,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </select>
 
                     <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                      {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                      {GROUPING_OPTIONS.map((g) => (
                         <button
-                          key={g}
-                          onClick={() => setExpensesGrouping(g)}
+                          key={g.id}
+                          onClick={() => setExpensesGrouping(g.id)}
                           className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                            expensesGrouping === g ? "bg-amber-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                            expensesGrouping === g.id ? "bg-amber-600 text-white" : "text-slate-600 hover:bg-slate-100"
                           }`}
                         >
-                          {g === "SEMANA" ? "Sem" : g}
+                          {g.label}
                         </button>
                       ))}
                     </div>
@@ -1054,15 +1109,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   <span className="text-xs font-bold text-slate-700 uppercase">2. Categorías Gastos de Operación</span>
 
                   <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                    {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                    {GROUPING_OPTIONS.map((g) => (
                       <button
-                        key={g}
-                        onClick={() => setExpensesCatChartGrouping(g)}
+                        key={g.id}
+                        onClick={() => setExpensesCatChartGrouping(g.id)}
                         className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          expensesCatChartGrouping === g ? "bg-amber-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                          expensesCatChartGrouping === g.id ? "bg-amber-600 text-white" : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
-                        {g === "SEMANA" ? "Sem" : g}
+                        {g.label}
                       </button>
                     ))}
                   </div>
@@ -1103,15 +1158,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   </select>
 
                   <div className="flex bg-white rounded-lg border border-slate-300 p-0.5 text-[10px] font-bold">
-                    {(["HORA", "DIA", "SEMANA", "AÑO"] as GroupingType[]).map((g) => (
+                    {GROUPING_OPTIONS.map((g) => (
                       <button
-                        key={g}
-                        onClick={() => setInventoryGrouping(g)}
+                        key={g.id}
+                        onClick={() => setInventoryGrouping(g.id)}
                         className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          inventoryGrouping === g ? "bg-purple-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                          inventoryGrouping === g.id ? "bg-purple-600 text-white" : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
-                        {g === "SEMANA" ? "Sem" : g}
+                        {g.label}
                       </button>
                     ))}
                   </div>
