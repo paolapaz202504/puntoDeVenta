@@ -188,10 +188,10 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        {/* Cabecera con ícono de cocina */}
-        <div className="px-6 py-5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex justify-between items-center shadow-md">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        {/* Cabecera con ícono de cocina (fija arriba) */}
+        <div className="px-6 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex justify-between items-center shadow-md shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
               <ChefHat className="w-6 h-6 text-white" />
@@ -208,13 +208,14 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
           <button
             onClick={onClose}
             type="button"
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors text-white"
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors text-white cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        {/* Cuerpo scrolleable con contenido estructurado */}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {loadingRecipes ? (
             <div className="py-12 flex flex-col items-center justify-center text-slate-400">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
@@ -227,7 +228,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                   1. Seleccione el Refresco o Relleno a Preparar
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-36 overflow-y-auto p-1.5 border border-slate-200 rounded-xl bg-slate-50">
                   {recipes.map((r) => {
                     const isSelected = r.id === selectedRecipeId;
                     return (
@@ -444,7 +445,7 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                       </span>
                     </p>
 
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                    <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                       {selectedRecipe.items?.map((item) => {
                         const requiredQty = Number(item.quantity) * effectiveMultiplier;
                         const stockAvailable = Number(item.ingredient?.current_stock || 0);
@@ -453,20 +454,23 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
                         return (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-white border border-slate-200"
+                            className="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors"
                           >
-                            <span className="font-medium text-slate-800">
-                              {item.ingredient?.name}
-                            </span>
-                            <div className="flex items-center space-x-3">
-                              <span className="font-bold text-slate-900">
+                            <div className="flex items-center space-x-2 min-w-0 pr-3">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                              <span className="font-semibold text-slate-800 truncate">
+                                {item.ingredient?.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2.5 shrink-0">
+                              <span className="font-bold text-slate-900 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
                                 {requiredQty >= 100
                                   ? requiredQty.toLocaleString(undefined, { maximumFractionDigits: 1 })
                                   : requiredQty.toFixed(2)}{" "}
                                 {item.unit}
                               </span>
                               <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+                                className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
                                   hasEnoughStock
                                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                     : "bg-amber-50 text-amber-700 border border-amber-200"
@@ -500,8 +504,8 @@ export const ProductionModal: React.FC<ProductionModalProps> = ({
           )}
         </div>
 
-        {/* Footer con Botón Gigante de 1 Clic */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+        {/* Footer con Botón Gigante de 1 Clic (fijo abajo) */}
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
           <button
             type="button"
             onClick={onClose}

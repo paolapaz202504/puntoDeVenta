@@ -38,6 +38,11 @@ export const CHANGELOG_DATA: ReleaseVersion[] = [
         description:
           "Escalado Exacto de Recetas Base por Litro: Preservación de la formulación estándar por 1 Litro (1,000 ml) con factores automáticos x5.25, x8.05 y x12.60 para descontar insumos e incrementar el stock en mililitros.",
       },
+      {
+        type: "improvement",
+        description:
+          "Diseño Anti-desbordamiento y Ampliación de Ancho en ProductionModal: Ampliación a 'max-w-4xl' con contención vertical estricta ('max-h-[90vh]'), cabecera y footer fijos, y scroll independiente en la lista de insumos para evitar desbordes al preparar recetas con múltiples ingredientes.",
+      },
     ],
   },
   {
