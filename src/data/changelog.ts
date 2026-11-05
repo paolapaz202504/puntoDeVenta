@@ -12,16 +12,51 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.5.0";
+export const CURRENT_VERSION = "v1.5.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.5.1",
+    date: "2026-11-05",
+    title: "Paginación en Artículos, Formato Fecha/Hora y Control Preciso de Abonos",
+    summary:
+      "Optimizaciones en el módulo de compras: paginación automática en la lista de mercadería recibida al superar 10 artículos, ampliación de ancho en el modal a 'max-w-5xl', visualización estricta de fecha y hora en formato 'dd/mm/yyyy hh:mm', activación de filtros en listado exclusivamente mediante el botón 'Actualizar Lista', y corrección de abonos parciales en PaymentModal.",
+    isLatest: true,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Paginación en Mercadería Recibida (StockEntryModal): Incorporación de navegación por páginas (10 artículos por página) con indicadores y controles Anterior/Siguiente para entradas con múltiples productos.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Ampliación de Ancho de Modal a 'max-w-5xl': Mayor holgura visual horizontal para el formulario de entradas de almacén y compras.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Formato de Fecha y Hora 'dd/mm/yyyy hh:mm': Estandarización de la columna de fecha en el listado de compras con visualización clara de hora y minutos.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Filtros Manuales con Botón 'Actualizar Lista': Desacoplamiento de filtros en EntriesList para que la consulta se ejecute exclusivamente cuando el usuario pulse 'Actualizar Lista' o presione Enter.",
+      },
+      {
+        type: "fix",
+        description:
+          "Blindaje de Abonos Parciales (PaymentModal): Reinicio reactivo del formulario al abrir, eliminación del pre-llenado accidental del saldo total, proyección de saldo restante en tiempo real y regularización de compra CMP-2026-0005 a estado PARCIAL.",
+      },
+    ],
+  },
   {
     version: "v1.5.0",
     date: "2026-11-05",
     title: "Módulo Integral de Compras, Entradas de Almacén y Gestión de Pagos",
     summary:
       "Lanzamiento del módulo operativo de entradas de mercadería y compras a proveedores. Incorpora creación rápida de proveedores 'al vuelo', categorización de entradas (Compra, Donación, Ajuste), selección de presentaciones con factor de conversión, recálculo automático de Costo Promedio Ponderado, pagos al contado y a crédito con captura bancaria, y control de Cuentas por Pagar con abonos parciales y liquidación total.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "feature",

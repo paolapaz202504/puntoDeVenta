@@ -17,6 +17,8 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -76,8 +78,10 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
     new Date().toISOString().split("T")[0]
   );
 
-  // Items
+  // Items y Paginación de Artículos
+  const ITEMS_PER_PAGE = 10;
   const [items, setItems] = useState<ItemRow[]>([]);
+  const [itemPage, setItemPage] = useState<number>(1);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -120,6 +124,7 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
       setDocumentDate(new Date().toISOString().split("T")[0]);
 
       // Initialize with 1 empty row if products exist
+      setItemPage(1);
       if (loadedProducts.length > 0) {
         const firstProd = loadedProducts[0];
         setItems([
@@ -220,8 +225,8 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
   const addRow = () => {
     if (products.length === 0) return;
     const prod = products[0];
-    setItems((prev) => [
-      ...prev,
+    const newItems = [
+      ...items,
       {
         product_id: prod.id,
         presentation_name: "",
@@ -230,7 +235,11 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
         unit_cost: Number(prod.current_cost || 0),
         base_unit_symbol: prod.base_unit?.symbol || "UND",
       },
-    ]);
+    ];
+    setItems(newItems);
+    // Si sobrepasa la página actual, navegar a la nueva página
+    const newTotalPages = Math.ceil(newItems.length / ITEMS_PER_PAGE);
+    setItemPage(newTotalPages);
   };
 
   const removeRow = (index: number) => {
@@ -238,7 +247,12 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
       toast.info("Debe conservar al menos un producto en la entrada");
       return;
     }
-    setItems((prev) => prev.filter((_, i) => i !== index));
+    const newItems = items.filter((_, i) => i !== index);
+    setItems(newItems);
+    const newTotalPages = Math.max(1, Math.ceil(newItems.length / ITEMS_PER_PAGE));
+    if (itemPage > newTotalPages) {
+      setItemPage(newTotalPages);
+    }
   };
 
   const calculateTotal = () => {
@@ -319,7 +333,7 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Cabecera Fija */}
           <div className="px-6 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex justify-between items-center shadow-md shrink-0">
             <div className="flex items-center space-x-3">
@@ -463,9 +477,16 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
             {/* 3. Detalle de Productos Ingresados */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  2. Mercadería Recibida ({items.length} productos)
-                </label>
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    2. Mercadería Recibida ({items.length} productos)
+                  </label>
+                  {items.length > ITEMS_PER_PAGE && (
+                    <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">
+                      Pág. {itemPage} de {Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE))}
+                    </span>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={addRow}
@@ -477,10 +498,11 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
               </div>
 
               <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                <div className="max-h-56 overflow-y-auto">
+                <div className="max-h-64 overflow-y-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px] sticky top-0 z-10">
                       <tr>
+                        <th className="px-3 py-2 w-10 text-center">#</th>
                         <th className="px-3 py-2 w-5/12">Producto</th>
                         <th className="px-2 py-2 w-3/12">Presentación de Compra</th>
                         <th className="px-2 py-2 text-center w-2/12">Cantidad</th>
@@ -490,117 +512,168 @@ export const StockEntryModal: React.FC<StockEntryModalProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
-                      {items.map((row, idx) => {
-                        const prod = products.find((p) => p.id === row.product_id);
-                        const hasPres = prod?.presentations && prod.presentations.length > 0;
-                        const subtotal = row.quantity * row.unit_cost;
-                        const totalBaseUnits = row.quantity * row.conversion_factor;
+                      {(() => {
+                        const startItemIdx = (itemPage - 1) * ITEMS_PER_PAGE;
+                        const paginatedItems = items.slice(startItemIdx, startItemIdx + ITEMS_PER_PAGE);
 
-                        return (
-                          <tr key={idx} className="hover:bg-slate-50/70">
-                            {/* Selector Producto */}
-                            <td className="px-3 py-2">
-                              <select
-                                value={row.product_id}
-                                onChange={(e) => handleProductChange(idx, e.target.value)}
-                                className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500 bg-white"
-                              >
-                                {products.map((p) => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.name} ({p.code})
-                                  </option>
-                                ))}
-                              </select>
-                              {prod && (
-                                <span className="text-[10px] text-slate-400 block mt-0.5">
-                                  Stock actual: {Number(prod.current_stock).toFixed(1)}{" "}
-                                  {prod.base_unit?.symbol}
-                                </span>
-                              )}
-                            </td>
+                        return paginatedItems.map((row, localIdx) => {
+                          const globalIdx = startItemIdx + localIdx;
+                          const prod = products.find((p) => p.id === row.product_id);
+                          const hasPres = prod?.presentations && prod.presentations.length > 0;
+                          const subtotal = row.quantity * row.unit_cost;
+                          const totalBaseUnits = row.quantity * row.conversion_factor;
 
-                            {/* Presentación */}
-                            <td className="px-2 py-2">
-                              {hasPres ? (
+                          return (
+                            <tr key={globalIdx} className="hover:bg-slate-50/70">
+                              {/* Número de fila */}
+                              <td className="px-3 py-2 text-center text-[10px] font-bold text-slate-400">
+                                #{globalIdx + 1}
+                              </td>
+
+                              {/* Selector Producto */}
+                              <td className="px-3 py-2">
                                 <select
-                                  value={row.presentation_name}
-                                  onChange={(e) =>
-                                    handlePresentationChange(idx, e.target.value)
-                                  }
+                                  value={row.product_id}
+                                  onChange={(e) => handleProductChange(globalIdx, e.target.value)}
                                   className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500 bg-white"
                                 >
-                                  <option value="">
-                                    Unidad Base ({prod?.base_unit?.symbol})
-                                  </option>
-                                  {prod?.presentations?.map((pr) => (
-                                    <option key={pr.id} value={pr.name}>
-                                      {pr.name} (x{pr.conversion_factor})
+                                  {products.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.name} ({p.code})
                                     </option>
                                   ))}
                                 </select>
-                              ) : (
-                                <span className="text-[11px] text-slate-500 italic block py-1.5">
-                                  Unidad ({row.base_unit_symbol})
-                                </span>
-                              )}
-                            </td>
+                                {prod && (
+                                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                                    Stock actual: {Number(prod.current_stock).toFixed(1)}{" "}
+                                    {prod.base_unit?.symbol}
+                                  </span>
+                                )}
+                              </td>
 
-                            {/* Cantidad */}
-                            <td className="px-2 py-2 text-center">
-                              <input
-                                type="number"
-                                min="0.01"
-                                step="any"
-                                required
-                                value={row.quantity}
-                                onChange={(e) =>
-                                  handleQuantityChange(idx, parseFloat(e.target.value) || 0)
-                                }
-                                className="w-16 px-2 py-1 text-xs text-center font-bold rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
-                              />
-                              {row.conversion_factor > 1 && (
-                                <span className="block text-[9px] text-emerald-600 font-bold mt-0.5">
-                                  =+{totalBaseUnits} {row.base_unit_symbol}
-                                </span>
-                              )}
-                            </td>
+                              {/* Presentación */}
+                              <td className="px-2 py-2">
+                                {hasPres ? (
+                                  <select
+                                    value={row.presentation_name}
+                                    onChange={(e) =>
+                                      handlePresentationChange(globalIdx, e.target.value)
+                                    }
+                                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500 bg-white"
+                                  >
+                                    <option value="">
+                                      Unidad Base ({prod?.base_unit?.symbol})
+                                    </option>
+                                    {prod?.presentations?.map((pr) => (
+                                      <option key={pr.id} value={pr.name}>
+                                        {pr.name} (x{pr.conversion_factor})
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <span className="text-[11px] text-slate-500 italic block py-1.5">
+                                    Unidad ({row.base_unit_symbol})
+                                  </span>
+                                )}
+                              </td>
 
-                            {/* Costo Unitario */}
-                            <td className="px-2 py-2 text-right">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                required
-                                value={row.unit_cost}
-                                onChange={(e) =>
-                                  handleCostChange(idx, parseFloat(e.target.value) || 0)
-                                }
-                                className="w-20 px-2 py-1 text-xs text-right font-semibold rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
-                              />
-                            </td>
+                              {/* Cantidad */}
+                              <td className="px-2 py-2 text-center">
+                                <input
+                                  type="number"
+                                  min="0.01"
+                                  step="any"
+                                  required
+                                  value={row.quantity}
+                                  onChange={(e) =>
+                                    handleQuantityChange(globalIdx, parseFloat(e.target.value) || 0)
+                                  }
+                                  className="w-16 px-2 py-1 text-xs text-center font-bold rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+                                />
+                                {row.conversion_factor > 1 && (
+                                  <span className="block text-[9px] text-emerald-600 font-bold mt-0.5">
+                                    =+{totalBaseUnits} {row.base_unit_symbol}
+                                  </span>
+                                )}
+                              </td>
 
-                            {/* Subtotal */}
-                            <td className="px-2 py-2 text-right font-bold text-slate-800">
-                              Q{subtotal.toFixed(2)}
-                            </td>
+                              {/* Costo Unitario */}
+                              <td className="px-2 py-2 text-right">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  required
+                                  value={row.unit_cost}
+                                  onChange={(e) =>
+                                    handleCostChange(globalIdx, parseFloat(e.target.value) || 0)
+                                  }
+                                  className="w-20 px-2 py-1 text-xs text-right font-semibold rounded-lg border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+                                />
+                              </td>
 
-                            {/* Borrar */}
-                            <td className="px-2 py-2 text-center">
-                              <button
-                                type="button"
-                                onClick={() => removeRow(idx)}
-                                className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              {/* Subtotal */}
+                              <td className="px-2 py-2 text-right font-bold text-slate-800">
+                                Q{subtotal.toFixed(2)}
+                              </td>
+
+                              {/* Borrar */}
+                              <td className="px-2 py-2 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => removeRow(globalIdx)}
+                                  className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Controles de Paginación si hay más de 10 productos */}
+                {items.length > ITEMS_PER_PAGE && (
+                  <div className="bg-slate-50 border-t border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-slate-600">
+                    <span>
+                      Mostrando artículos <strong>{(itemPage - 1) * ITEMS_PER_PAGE + 1}</strong> a{" "}
+                      <strong>
+                        {Math.min(items.length, itemPage * ITEMS_PER_PAGE)}
+                      </strong>{" "}
+                      de <strong>{items.length}</strong>
+                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        type="button"
+                        disabled={itemPage <= 1}
+                        onClick={() => setItemPage((p) => Math.max(1, p - 1))}
+                        className="px-2.5 py-1 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-40 transition-colors flex items-center text-xs font-semibold cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
+                        Anterior
+                      </button>
+                      <span className="text-[11px] font-bold text-slate-700 px-1.5">
+                        {itemPage} / {Math.ceil(items.length / ITEMS_PER_PAGE)}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={itemPage >= Math.ceil(items.length / ITEMS_PER_PAGE)}
+                        onClick={() =>
+                          setItemPage((p) =>
+                            Math.min(Math.ceil(items.length / ITEMS_PER_PAGE), p + 1)
+                          )
+                        }
+                        className="px-2.5 py-1 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-40 transition-colors flex items-center text-xs font-semibold cursor-pointer"
+                      >
+                        Siguiente
+                        <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Pie de tabla con Total */}
                 <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex justify-between items-center">

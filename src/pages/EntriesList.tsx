@@ -39,11 +39,20 @@ export const EntriesList: React.FC = () => {
     pendingCreditCount: 0,
   });
 
-  // Filtros y Paginación
-  const [searchTerm, setSearchTerm] = useState("");
-  const [supplierFilter, setSupplierFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  // Filtros (Entradas de usuario en UI)
+  const [searchTermInput, setSearchTermInput] = useState("");
+  const [supplierFilterInput, setSupplierFilterInput] = useState("");
+  const [typeFilterInput, setTypeFilterInput] = useState("");
+  const [statusFilterInput, setStatusFilterInput] = useState("");
+
+  // Filtros aplicados (solo se actualizan al pulsar "Actualizar Lista")
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    supplier_id: "",
+    entry_type: "",
+    payment_status: "",
+  });
+
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -62,7 +71,7 @@ export const EntriesList: React.FC = () => {
 
   useEffect(() => {
     loadEntries();
-  }, [page, searchTerm, supplierFilter, typeFilter, statusFilter]);
+  }, [page, appliedFilters]);
 
   const loadSuppliers = async () => {
     try {
@@ -96,10 +105,10 @@ export const EntriesList: React.FC = () => {
         limit: String(limit),
       });
 
-      if (searchTerm.trim()) params.append("search", searchTerm.trim());
-      if (supplierFilter) params.append("supplier_id", supplierFilter);
-      if (typeFilter) params.append("entry_type", typeFilter);
-      if (statusFilter) params.append("payment_status", statusFilter);
+      if (appliedFilters.search.trim()) params.append("search", appliedFilters.search.trim());
+      if (appliedFilters.supplier_id) params.append("supplier_id", appliedFilters.supplier_id);
+      if (appliedFilters.entry_type) params.append("entry_type", appliedFilters.entry_type);
+      if (appliedFilters.payment_status) params.append("payment_status", appliedFilters.payment_status);
 
       const res = await api.get(`/stock-entries?${params.toString()}`);
       if (res.data?.data) {
@@ -115,9 +124,33 @@ export const EntriesList: React.FC = () => {
     }
   };
 
-  const handleRefresh = () => {
+  // Aplicar filtros explícitamente al pulsar "Actualizar Lista" o dar Enter
+  const handleApplyFilters = () => {
+    setPage(1);
+    setAppliedFilters({
+      search: searchTermInput,
+      supplier_id: supplierFilterInput,
+      entry_type: typeFilterInput,
+      payment_status: statusFilterInput,
+    });
     loadMetrics();
-    loadEntries();
+  };
+
+  const handleRefresh = () => {
+    handleApplyFilters();
+  };
+
+  // Formato dd/mm/yyyy hh:mm
+  const formatDateTime = (entry: StockEntry) => {
+    const raw = entry.created_at || entry.entry_date;
+    if (!raw) return "—";
+    const d = new Date(raw);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   const handleOpenPayment = (entry: StockEntry) => {
@@ -323,17 +356,17 @@ export const EntriesList: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de Búsqueda y Filtros */}
+      {/* Barra de Búsqueda y Filtros (Se aplican al presionar "Actualizar Lista") */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por número, factura, proveedor..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
+            placeholder="Buscar por número, factura, proveedor (Enter)..."
+            value={searchTermInput}
+            onChange={(e) => setSearchTermInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleApplyFilters();
             }}
             className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
@@ -342,11 +375,8 @@ export const EntriesList: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Filtro Proveedor */}
           <select
-            value={supplierFilter}
-            onChange={(e) => {
-              setSupplierFilter(e.target.value);
-              setPage(1);
-            }}
+            value={supplierFilterInput}
+            onChange={(e) => setSupplierFilterInput(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">Todos los Proveedores</option>
@@ -359,11 +389,8 @@ export const EntriesList: React.FC = () => {
 
           {/* Filtro Tipo Entrada */}
           <select
-            value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              setPage(1);
-            }}
+            value={typeFilterInput}
+            onChange={(e) => setTypeFilterInput(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">Todos los Tipos</option>
@@ -374,11 +401,8 @@ export const EntriesList: React.FC = () => {
 
           {/* Filtro Estado Pago */}
           <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
+            value={statusFilterInput}
+            onChange={(e) => setStatusFilterInput(e.target.value)}
             className="px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">Todos los Estados de Pago</option>
@@ -386,6 +410,17 @@ export const EntriesList: React.FC = () => {
             <option value="PENDIENTE">Pendientes de Pago</option>
             <option value="PARCIAL">Con Pago Parcial</option>
           </select>
+
+          {/* Botón Obligatorio para Aplicar Filtros */}
+          <button
+            type="button"
+            onClick={handleApplyFilters}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ml-auto md:ml-0"
+            title="Aplica los filtros seleccionados a la lista"
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            Actualizar Lista
+          </button>
         </div>
       </div>
 
@@ -396,7 +431,7 @@ export const EntriesList: React.FC = () => {
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="px-4 py-3.5">No. Entrada</th>
-                <th className="px-4 py-3.5">Fecha</th>
+                <th className="px-4 py-3.5">Fecha y Hora</th>
                 <th className="px-4 py-3.5">Proveedor</th>
                 <th className="px-4 py-3.5">Factura / Doc.</th>
                 <th className="px-4 py-3.5 text-center">Ítems</th>
@@ -440,9 +475,9 @@ export const EntriesList: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Fecha */}
-                      <td className="px-4 py-3 text-slate-600">
-                        {new Date(entry.entry_date).toLocaleDateString()}
+                      {/* Fecha y Hora (dd/mm/yyyy hh:mm) */}
+                      <td className="px-4 py-3 text-slate-700 font-mono text-[11px] whitespace-nowrap">
+                        {formatDateTime(entry)}
                       </td>
 
                       {/* Proveedor */}

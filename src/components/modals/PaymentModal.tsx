@@ -37,7 +37,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   if (!isOpen || !entry) return null;
 
   const balance = Number(entry.balance_amount || 0);
-  const [amount, setAmount] = useState<number>(balance);
+  const [amount, setAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<
     "EFECTIVO" | "CHEQUE" | "DEPOSITO" | "TRANSFERENCIA"
   >("EFECTIVO");
@@ -49,17 +49,32 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Reiniciar formulario cada vez que se abra o cambie la compra
+  React.useEffect(() => {
+    if (isOpen && entry) {
+      setAmount("");
+      setPaymentMethod("EFECTIVO");
+      setBankName("");
+      setDocumentNumber("");
+      setDocumentDate(new Date().toISOString().split("T")[0]);
+      setNotes("");
+    }
+  }, [isOpen, entry]);
+
+  const numAmount = parseFloat(amount) || 0;
+  const remainingBalance = Math.max(0, balance - numAmount);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (amount <= 0) {
-      toast.error("El monto a abonar debe ser mayor a 0");
+    if (numAmount <= 0) {
+      toast.error("Debe ingresar un monto válido a abonar mayor a Q0.00");
       return;
     }
 
-    if (amount > balance) {
+    if (numAmount > balance) {
       toast.error(
-        `El monto (Q${amount.toFixed(2)}) no puede exceder el saldo pendiente (Q${balance.toFixed(2)})`
+        `El monto (Q${numAmount.toFixed(2)}) no puede exceder el saldo pendiente (Q${balance.toFixed(2)})`
       );
       return;
     }
@@ -78,7 +93,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     setSaving(true);
     try {
       await api.post(`/stock-entries/${entry.id}/payments`, {
-        amount,
+        amount: numAmount,
         payment_method: paymentMethod,
         bank_name: paymentMethod === "EFECTIVO" ? null : bankName.trim(),
         document_number: paymentMethod === "EFECTIVO" ? null : documentNumber.trim(),
@@ -87,9 +102,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       });
 
       toast.success(
-        amount >= balance
+        numAmount >= balance
           ? `¡Compra ${entry.entry_number} liquidada en su totalidad!`
-          : `Abono de Q${amount.toFixed(2)} registrado exitosamente`
+          : `Abono de Q${numAmount.toFixed(2)} registrado exitosamente. Saldo restante: Q${remainingBalance.toFixed(2)}`
       );
       onPaymentSuccess();
       onClose();
@@ -155,15 +170,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
 
           {/* Campo Monto con botón Pagar Total */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
+          <div className="bg-indigo-50/40 p-4 rounded-xl border border-indigo-100 space-y-2">
+            <div className="flex justify-between items-center">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Monto a Abonar (Q) <span className="text-rose-500">*</span>
               </label>
               <button
                 type="button"
-                onClick={() => setAmount(balance)}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 underline cursor-pointer"
+                onClick={() => setAmount(String(balance))}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
               >
                 Pagar Saldo Completo (Q{balance.toFixed(2)})
               </button>
@@ -178,11 +193,28 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 min="0.01"
                 max={balance}
                 required
+                autoFocus
+                placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className="w-full pl-8 pr-4 py-2.5 text-base font-bold text-slate-900 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full pl-8 pr-4 py-2.5 text-base font-bold text-slate-900 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 bg-white"
               />
             </div>
+            {numAmount > 0 && (
+              <div className="flex justify-between items-center text-xs pt-1">
+                <span className="text-slate-500 font-medium">Saldo restante proyectado:</span>
+                <span
+                  className={`font-bold px-2 py-0.5 rounded-md ${
+                    remainingBalance <= 0.009
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  Q{remainingBalance.toFixed(2)}{" "}
+                  {remainingBalance <= 0.009 ? "(Liquidación Total)" : "(Pago Parcial)"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Selector de Método de Pago */}
@@ -307,8 +339,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={saving}
-              className="inline-flex items-center px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              disabled={saving || numAmount <= 0 || numAmount > balance}
+              className="inline-flex items-center px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm disabled:opacity-40 cursor-pointer"
             >
               {saving ? (
                 <>
@@ -318,7 +350,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                  Confirmar Abono de Q{amount.toFixed(2)}
+                  Confirmar Abono de Q{numAmount.toFixed(2)}
                 </>
               )}
             </button>
