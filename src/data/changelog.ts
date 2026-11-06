@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.9.1";
+export const CURRENT_VERSION = "v1.9.2";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.9.2",
+    date: "2026-11-06",
+    title: "Resolución de Concurrencia Multi-Cajero: Reintentos con Jitter y Bloqueo de Colisiones",
+    summary:
+      "Blindaje contra colisiones en ventas simultáneas: bucle de reintento automático con desfasamiento temporal aleatorio (jitter 60-180ms) ante choques de correlativo (P2002 / unique constraint), verificación en tiempo real de inventario fresco dentro de la transacción ACID y soporte para múltiples cajeros concurrentes sin error.",
+    isLatest: true,
+    changes: [
+      {
+        type: "fix",
+        description:
+          "Eliminación de Error por Venta Duplicada en Concurrencia: Implementación de bucle de reintento con backoff y jitter en SaleService.create. Cuando múltiples cajeros confirman cobros en el mismo milisegundo, el servidor reasigna automáticamente el siguiente correlativo libre sin mostrar error.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Lectura Atómica de Inventario en Transacción: Consulta de stock fresco directamente dentro de la transacción interactiva de Prisma, evitando condiciones de carrera (Race Conditions) y sobreventas accidentales.",
+      },
+      {
+        type: "feature",
+        description:
+          "Certificación Multi-Cajero Superada: Prueba automatizada con 3 ventas lanzadas en paralelo exacto (Promise.all) sobre 'Agua Mineral Cantinero Vidrio 355 ml', obteniendo 3 ventas consecutivas exitosas en <7 segundos.",
+      },
+    ],
+  },
   {
     version: "v1.9.1",
     date: "2026-11-06",
     title: "Bloqueo Estricto de Ventas sin Stock y Protección Integral de Inventario en POS",
     summary:
       "Implementación de control estricto de existencias en Punto de Venta y servidor: bloqueo absoluto de venta para cualquier producto con existencia 0 o cantidad insuficiente, badges visuales de 'Agotado' y estilo atenuado en catálogo, y rechazo transaccional 400 en backend.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "security",
