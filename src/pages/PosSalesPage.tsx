@@ -140,9 +140,9 @@ export const PosSalesPage: React.FC = () => {
   // Recibo tras venta exitosa
   const [lastSaleReceipt, setLastSaleReceipt] = useState<any | null>(null);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [prodRes, catRes, tablesRes] = await Promise.all([
         api.get("/sales/pos-products"),
         api.get("/categories?limit=100"),
@@ -152,19 +152,52 @@ export const PosSalesPage: React.FC = () => {
       const allCats: Category[] = catRes.data.items || catRes.data.data || [];
       // Filtrar categorías que están configuradas para mostrar en POS
       const posCats = allCats.filter((c) => c.show_in_pos !== false);
+      const prods = prodRes.data || [];
+      const tbls = tablesRes.data.items || tablesRes.data.data || [];
 
-      setProducts(prodRes.data || []);
+      setProducts(prods);
       setCategories(posCats);
-      setTables(tablesRes.data.items || tablesRes.data.data || []);
+      setTables(tbls);
+
+      // Persistir en sesión para render instantáneo Stale-While-Revalidate (cacheAgent)
+      try {
+        sessionStorage.setItem(
+          "pos_cache",
+          JSON.stringify({
+            products: prods,
+            categories: posCats,
+            tables: tbls,
+            timestamp: Date.now(),
+          })
+        );
+      } catch {}
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al cargar productos del Punto de Venta");
+      if (!silent) {
+        toast.error(error.response?.data?.message || "Error al cargar productos del Punto de Venta");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInitialData();
+    // Carga instantánea desde caché local para latencia cero (0ms) en transiciones
+    const cached = sessionStorage.getItem("pos_cache");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.products && parsed.categories && parsed.tables) {
+          setProducts(parsed.products);
+          setCategories(parsed.categories);
+          setTables(parsed.tables);
+          setLoading(false);
+          // Sincronización transparente en segundo plano
+          fetchInitialData(true);
+          return;
+        }
+      } catch {}
+    }
+    fetchInitialData(false);
   }, []);
 
   // Filtrado de productos en catálogo
@@ -346,7 +379,7 @@ export const PosSalesPage: React.FC = () => {
               <div className="flex items-center space-x-2 text-xs font-bold text-slate-500 w-full sm:w-auto justify-end">
                 <span>{filteredProducts.length} productos disponibles</span>
                 <button
-                  onClick={fetchInitialData}
+                  onClick={() => fetchInitialData(false)}
                   className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 transition-colors"
                   title="Actualizar catálogo"
                 >

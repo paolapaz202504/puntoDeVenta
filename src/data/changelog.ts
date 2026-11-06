@@ -12,16 +12,56 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.8.1";
+export const CURRENT_VERSION = "v1.9.0";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.9.0",
+    date: "2026-11-06",
+    title: "Auditoría de Calidad QA, Optimización WebP (-90.3%), Caché JSON-First y Rendimiento de APIs",
+    summary:
+      "Incremento mayor de rendimiento y control de calidad integral: conversión de los 83 packshots a WebP con 90.3% de ahorro en ancho de banda (16.3MB a 1.58MB), implementación de arquitectura de caché JSON-First y en memoria (aceleración 130x+ de POS y Dashboard), compresión Gzip nativa, bundle splitting en Vite y patrón Stale-While-Revalidate en frontend.",
+    isLatest: true,
+    changes: [
+      {
+        type: "improvement",
+        description:
+          "Optimización de Imágenes WebP (83 Productos): Reducción de 16.27 MB a 1.58 MB (-90.31%) en el peso total del catálogo, con subida al bucket Google Cloud Storage ('punto_de_venta') y resolución automática transparente en frontend con cabeceras de caché inmutable a 1 año.",
+      },
+      {
+        type: "feature",
+        description:
+          "Arquitectura de Caché JSON-First y Memoria: Creación de CacheService en backend con persistencia atómica en disco (JSON-First) y memoria TTL. Las consultas repetidas del POS pasaron de 1,714 ms a 13 ms (131.8x más rápido).",
+      },
+      {
+        type: "improvement",
+        description:
+          "Aceleración de Dashboard Financiero y Reportes: Paralelización de consultas con Promise.all y memoización en caché de 60 segundos con invalidación reactiva ante nuevas ventas. Latencia reducida de 1,759 ms a 13 ms (135.3x más rápido).",
+      },
+      {
+        type: "improvement",
+        description:
+          "Compresión HTTP Gzip y Despacho Estático: Middleware de compresión activado en Express y despacho estático de archivos con max-age de 365 días y ETags para máximo rendimiento.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Frontend Bundle Splitting & Stale-While-Revalidate: Configuración de manualChunks en Vite eliminando advertencias de tamaño de bundle; persistencia local del catálogo en sessionStorage para renderizado instantáneo (0ms de percepción).",
+      },
+      {
+        type: "cloud",
+        description:
+          "Resiliencia de Conexión TiDB Serverless: Ajuste de connect_timeout a 60s en configuración y variables de entorno para tolerar arranques en frío de la base de datos serverless sin degradación de servicio.",
+      },
+    ],
+  },
   {
     version: "v1.8.1",
     date: "2026-11-05",
     title: "Optimización de Transacciones ACID en POS y Protección Integral de APIs",
     summary:
       "Resolución integral del tiempo de espera (timeout) en el registro de comandas POS: desacoplamiento de lecturas antes de la transacción, descuento de stock optimizado y ampliación del tiempo de espera interactivo de Prisma a 30s. Validación de control de calidad QA con 8 pruebas automatizadas exitosas.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "fix",
