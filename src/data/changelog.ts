@@ -12,16 +12,41 @@ export interface ReleaseVersion {
   changes: ChangeItem[];
 }
 
-export const CURRENT_VERSION = "v1.9.0";
+export const CURRENT_VERSION = "v1.9.1";
 
 export const CHANGELOG_DATA: ReleaseVersion[] = [
+  {
+    version: "v1.9.1",
+    date: "2026-11-06",
+    title: "Bloqueo Estricto de Ventas sin Stock y Protección Integral de Inventario en POS",
+    summary:
+      "Implementación de control estricto de existencias en Punto de Venta y servidor: bloqueo absoluto de venta para cualquier producto con existencia 0 o cantidad insuficiente, badges visuales de 'Agotado' y estilo atenuado en catálogo, y rechazo transaccional 400 en backend.",
+    isLatest: true,
+    changes: [
+      {
+        type: "security",
+        description:
+          "Validación Estricta de Stock en Backend: Bloqueo transaccional en SaleService impidiendo la venta de productos sin existencias o cuando la cantidad requerida supera el inventario físico registrado en TiDB Cloud.",
+      },
+      {
+        type: "feature",
+        description:
+          "Protección de Carrito en Frontend: Bloqueo de adición e incremento en carrito para productos agotados (stock <= 0) con notificaciones toast ergonómicas y explicativas.",
+      },
+      {
+        type: "improvement",
+        description:
+          "Diseño Visual de Productos Agotados en POS: Badge prominente 'Agotado' en rojo intenso, deshabilitación visual de tarjetas, precio tachado e indicador de no disponibilidad en mostrador.",
+      },
+    ],
+  },
   {
     version: "v1.9.0",
     date: "2026-11-06",
     title: "Auditoría de Calidad QA, Optimización WebP (-90.3%), Caché JSON-First y Rendimiento de APIs",
     summary:
       "Incremento mayor de rendimiento y control de calidad integral: conversión de los 83 packshots a WebP con 90.3% de ahorro en ancho de banda (16.3MB a 1.58MB), implementación de arquitectura de caché JSON-First y en memoria (aceleración 130x+ de POS y Dashboard), compresión Gzip nativa, bundle splitting en Vite y patrón Stale-While-Revalidate en frontend.",
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         type: "improvement",

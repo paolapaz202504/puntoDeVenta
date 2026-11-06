@@ -245,9 +245,22 @@ export const PosSalesPage: React.FC = () => {
 
   // Operaciones del Carrito
   const addToCart = (product: PosProduct) => {
+    if (product.current_stock <= 0) {
+      toast.error(`Producto agotado`, {
+        description: `"${product.name}" no tiene existencias disponibles en inventario. Debe ingresar compras o registrar producción para poder venderlo.`,
+      });
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
+        if (existing.quantity + 1 > product.current_stock) {
+          toast.error(`Stock máximo alcanzado`, {
+            description: `Solo hay ${product.current_stock} unidad(es) disponibles de "${product.name}".`,
+          });
+          return prev;
+        }
         return prev.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -264,6 +277,12 @@ export const PosSalesPage: React.FC = () => {
         .map((item) => {
           if (item.product.id === productId) {
             const newQty = item.quantity + delta;
+            if (delta > 0 && newQty > item.product.current_stock) {
+              toast.error(`Stock máximo alcanzado`, {
+                description: `No puede agregar más de ${item.product.current_stock} unidad(es) de "${item.product.name}".`,
+              });
+              return item;
+            }
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
@@ -322,6 +341,22 @@ export const PosSalesPage: React.FC = () => {
     if (paymentMethod === "TRANSFERENCIA" && (!bankName.trim() || !documentNumber.trim())) {
       toast.error("Debe ingresar el banco y el número de comprobante de la transferencia");
       return;
+    }
+
+    // Validación estricta de existencias antes de enviar la orden al servidor
+    for (const item of cart) {
+      if (item.product.current_stock <= 0) {
+        toast.error(`Producto agotado`, {
+          description: `"${item.product.name}" no tiene existencias disponibles en inventario.`,
+        });
+        return;
+      }
+      if (item.quantity > item.product.current_stock) {
+        toast.error(`Stock insuficiente`, {
+          description: `El producto "${item.product.name}" solo tiene ${item.product.current_stock} unidades disponibles en inventario.`,
+        });
+        return;
+      }
     }
 
     setProcessingSale(true);
@@ -440,7 +475,12 @@ export const PosSalesPage: React.FC = () => {
                   <button
                     key={p.id}
                     onClick={() => addToCart(p)}
-                    className="bg-white p-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left flex flex-col justify-between group relative cursor-pointer"
+                    className={`p-2.5 rounded-2xl border transition-all text-left flex flex-col justify-between group relative cursor-pointer ${
+                      isOutOfStock
+                        ? "bg-slate-50/80 border-slate-200 opacity-60 hover:border-rose-300"
+                        : "bg-white border-slate-200 hover:border-blue-500 hover:shadow-lg"
+                    }`}
+                    title={isOutOfStock ? `"${p.name}" - Agotado (Sin existencias en inventario)` : p.name}
                   >
                     <div>
                       {/* Imagen Prominente del Producto */}
@@ -449,7 +489,9 @@ export const PosSalesPage: React.FC = () => {
                           <img
                             src={getFileUrl(p.image_url)}
                             alt={p.name}
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                            className={`w-full h-full object-contain transition-transform duration-200 ${
+                              isOutOfStock ? "grayscale contrast-75" : "group-hover:scale-105"
+                            }`}
                             loading="lazy"
                             onError={(e) => {
                               const target = e.currentTarget;
@@ -472,7 +514,7 @@ export const PosSalesPage: React.FC = () => {
                           <span
                             className={`px-1.5 py-0.5 rounded-md font-mono font-bold text-[9px] shadow-xs ${
                               isOutOfStock
-                                ? "bg-rose-100 text-rose-700 border border-rose-200"
+                                ? "bg-rose-600 text-white font-extrabold uppercase tracking-wider"
                                 : p.current_stock <= p.min_stock_alert
                                 ? "bg-amber-100 text-amber-700 border border-amber-200"
                                 : "bg-emerald-100 text-emerald-800 border border-emerald-200"
@@ -496,11 +538,15 @@ export const PosSalesPage: React.FC = () => {
 
                     {/* Precio y Botón Agregar */}
                     <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-sm font-black text-slate-900 font-mono">
+                      <span className={`text-sm font-black font-mono ${isOutOfStock ? "text-slate-400 line-through" : "text-slate-900"}`}>
                         Q {p.sale_price.toFixed(2)}
                       </span>
-                      <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all">
-                        <Plus className="w-3.5 h-3.5" />
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                        isOutOfStock
+                          ? "bg-rose-50 text-rose-400"
+                          : "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                      }`}>
+                        {isOutOfStock ? <span className="text-[10px] font-bold">✕</span> : <Plus className="w-3.5 h-3.5" />}
                       </div>
                     </div>
                   </button>
